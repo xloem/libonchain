@@ -8,8 +8,8 @@ static const btc_chainparams bsv_chainparams_main = {
     0x00,
     // base58Prefixes[SCRIPT_ADDRESS]
     0x05,
-    // bech32_hrp TODO: why is this missing from bsv source
-    "",
+    // bech32_hrp (bsv doesn't actually use this)
+    "bs",
     // base58Prefixes[SECRET_KEY]
     128,
     // base58Prefixes[EXT_SECRET_KEY]
@@ -33,8 +33,8 @@ static const btc_chainparams bsv_chainparams_stn = {
     111,
     // base58Prefixes[SCRIPT_ADDRESS]
     196,
-    // bech32_hrp TODO: why is this missing from bsv source
-    "",
+    // bech32_hrp (bsv doesn't actually use this)
+    "st",
     // base58Prefixes[SECRET_KEY]
     239,
     // base58Prefixes[EXT_SECRET_KEY]
@@ -58,8 +58,8 @@ static const btc_chainparams bsv_chainparams_testnet = {
     111,
     // base58Prefixes[SCRIPT_ADDRESS]
     196,
-    // bech32_hrp TODO: why is this missing from bsv source
-    "",
+    // bech32_hrp (bsv doesn't actually use this)
+    "ts",
     // base58Prefixes[SECRET_KEY]
     239,
     // base58Prefixes[EXT_SECRET_KEY]
@@ -83,8 +83,8 @@ static const btc_chainparams bsv_chainparams_regtest = {
     111,
     // base58Prefixes[SCRIPT_ADDRESS]
     196,
-    // bech32_hrp TODO: why is this missing from bsv source
-    "",
+    // bech32_hrp (bsv doesn't actually use this)
+    "bsrt",
     // base58Prefixes[SECRET_KEY]
     239,
     // base58Prefixes[EXT_SECRET_KEY]
