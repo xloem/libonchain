@@ -1,17 +1,20 @@
 #include <libonchain/chain_libbtc.hpp>
 
 #include <btc/chainparams.h>
+#include <btc/net.h>
 #include <btc/netspv.h>
 #include <btc/utils.h>
 #include <event2/event.h>
 
-std::string utils_uint256_to_reversed_hex(uint256 bin)
+namespace libonchain {
+
+static std::string utils_uint256_to_reversed_hex(uint256 bin)
 {
     static char const digits[] = "0123456789abcdef";
-    char hex[sizeof(bin) * 2];
+    char hex[sizeof(decltype(bin)) * 2];
 
     size_t i, j;
-    for (i = 0, j = sizeof(hex); i < sizeof(bin); i ++) {
+    for (i = 0, j = sizeof(hex); i < sizeof(decltype(bin)); i ++) {
         hex[-- j] = digits[(bin[i] >> 4) & 0xF];
         hex[-- j] = digits[bin[i] & 0xF];
     }
@@ -19,9 +22,10 @@ std::string utils_uint256_to_reversed_hex(uint256 bin)
     return {hex, sizeof(hex)};
 }
 
-ChainLibbtc::ChainLibbtc(std::string const & technology, struct btc_chainparams_ const & chainparams)
+ChainLibbtc::ChainLibbtc(std::string const & technology, btc_chainparams const & chainparams)
 : IChain(technology, chainparams.chainname),
   libbtc_chainparams(chainparams),
+  libbtc_spvclient(nullptr, btc_spv_client_free),
   stopping(false)
 { }
 
@@ -30,25 +34,28 @@ ChainLibbtc::~ChainLibbtc()
     disconnect();
 }
 
-static void ChainLibbtc::netspv_header_connected(btc_spv_client *libbtc_spvclient)
+/*static*/ void ChainLibbtc::netspv_header_connected(btc_spv_client *libbtc_spvclient)
 {
-    ChainLibbtc *self = libbtc_spvclient->nodegroup->ctx;
+    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->nodegroup->ctx);
 }
 
-static void netspv_sync_completed(btc_spv_client *libbtc_spvclient)
+/*static*/ void ChainLibbtc::netspv_sync_completed(btc_spv_client *libbtc_spvclient)
 {
-    ChainLibbtc *self = libbtc_spvclient->nodegroup->ctx;
+    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->nodegroup->ctx);
     self->on_connectionstate(ConnectionState::CONNECTED);
 }
 
-static void netspv_header_message_processed(btc_spv_client *libbtc_spvclient, btc_node *node, btc_blockindex *newtip)
+/*static*/ ChainLibbtc::btc_bool ChainLibbtc::netspv_header_message_processed(btc_spv_client *libbtc_spvclient, btc_node *node, btc_blockindex *newtip)
 {
-    ChainLibbtc *self = libbtc_spvclient->nodegroup->ctx;
+    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->nodegroup->ctx);
+    (void)self;
+    return true;
 }
 
-static void netspv_header_message_processed(void *ctx, btc_tx *tx, unsigned int pos, btc_blockindex *blockindex)
+/*static*/ void ChainLibbtc::netspv_sync_transaction(void *ctx, btc_tx *tx, unsigned int pos, btc_blockindex *blockindex)
 {
-    ChainLibbtc *self = ctx;
+    ChainLibbtc *self = static_cast<ChainLibbtc*>(ctx);
+    (void)self;
 }
 
 void ChainLibbtc::connect()
@@ -59,10 +66,7 @@ void ChainLibbtc::connect()
 #else
         bool debug = true;
 #endif
-        libbtc_spvclient = std::unique_ptr<btc_spv_client>(
-            btc_spv_client_new(chainparams.chainname, debug, /*mem only*/false),
-            btc_spv_client_free
-        );
+        libbtc_spvclient.reset(btc_spv_client_new(&libbtc_chainparams, debug, /*mem only*/false));
         libbtc_spvclient->headers_db_ctx = this;
         libbtc_spvclient->sync_transaction_ctx = this;
         libbtc_spvclient->nodegroup->ctx = this;
@@ -83,11 +87,11 @@ void ChainLibbtc::connect()
     }
     if (!runloop.joinable()) {
         on_connectionstate(ConnectionState::CONNECTING);
-        runloop = std::thread(btc_spv_client_runloop);
+        runloop = std::thread(&ChainLibbtc::run, this);
     }
 }
 
-static void ChainLibbtc::run()
+/*static*/ void ChainLibbtc::run()
 {
     int event_state;
     do {
@@ -143,4 +147,6 @@ IChain::Block ChainLibbtc::block(std::string const & id)
 std::vector<std::string> txs(std::string const & block = "mempool")
 {
     throw std::runtime_error("todo: retrieve block content from peers.  we have their inventories.");
+}
+
 }

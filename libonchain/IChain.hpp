@@ -14,6 +14,7 @@ public:
     enum class Flag {
         TEST,
         PRIVATE,
+        DEFAULT
     };
 
     enum class ConnectionState {
@@ -30,16 +31,16 @@ public:
 
     virtual void connect() = 0;
     virtual void disconnect() = 0;
-    ConnectionState connectionState() = 0;
+    ConnectionState connectionState();
 
     virtual std::string root() = 0;
     virtual std::vector<std::string> tips() = 0;
     virtual Block block(std::string const & id) = 0;
 
-    virtual std::vector<std::string> txs(std::string const & block = "mempool", std::vector<Flag> flags = {}) = 0;
+    virtual std::vector<std::string> txs(std::string const & block = "mempool") = 0;
 
 protected:
-    IChainBackend(std::string technology, std::string chain);
+    IChain(std::string technology, std::string chain, std::vector<Flag> flags = {});
 
     void on_connectionstate(ConnectionState state);
     void on_block(std::string id);
