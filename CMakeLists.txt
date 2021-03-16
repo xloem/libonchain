@@ -8,7 +8,7 @@ execute_process(COMMAND git submodule update --init --recursive WORKING_DIRECTOR
 ExternalProject_add(
     libbtc_project SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/libbtc/libbtc
     PATCH_COMMAND ./autogen.sh CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
-    BUILD_COMMAND make INSTALL_COMMAND make install #TEST_COMMAND make check
+    BUILD_COMMAND make INSTALL_COMMAND make install TEST_COMMAND make check
 )
 # this also makes a pkgconfig file that could be used.  for some reason the btc includes are not installed in a btc subfolder; they really look intended to be.
 add_library(libbtc INTERFACE)
