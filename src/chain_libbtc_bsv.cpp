@@ -2,6 +2,8 @@
 
 #include <btc/chainparams.h>
 
+namespace libonchain {
+
 static const btc_chainparams bsv_chainparams_main = {
     // strNetworkID
     "main",
@@ -102,7 +104,9 @@ static const btc_chainparams bsv_chainparams_regtest = {
     {0},
 };
 
-libonchain::ChainLibbtc bsv_main("bsv", bsv_chainparams_main);
-libonchain::ChainLibbtc bsv_stn("bsv", bsv_chainparams_stn);
-libonchain::ChainLibbtc bsv_testnet("bsv", bsv_chainparams_testnet);
-libonchain::ChainLibbtc bsv_regtest("bsv", bsv_chainparams_regtest);
+libonchain::ChainLibbtc bsv_main("bsv", bsv_chainparams_main, {});
+libonchain::ChainLibbtc bsv_stn("bsv", bsv_chainparams_stn, {IChain::CHAIN_TEST});
+libonchain::ChainLibbtc bsv_testnet("bsv", bsv_chainparams_testnet, {IChain::CHAIN_TEST});
+libonchain::ChainLibbtc bsv_regtest("bsv", bsv_chainparams_regtest, {IChain::CHAIN_TEST, IChain::CHAIN_PRIVATE});
+
+}

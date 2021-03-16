@@ -18,7 +18,7 @@ add_dependencies(libbtc libbtc_submodule)
 target_link_libraries(libbtc INTERFACE ${INSTALL_DIR}/lib/libbtc.a)
 target_include_directories(libbtc INTERFACE ${INSTALL_DIR}/include)
 
-add_library(libonchain src/chain_libbtc.cpp src/chain_libbtc_bsv.cpp)
+add_library(libonchain src/IChain.cpp src/chain_libbtc.cpp src/chain_libbtc_bsv.cpp)
 target_link_libraries(libonchain libbtc)
 target_include_directories(libonchain PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

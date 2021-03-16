@@ -17,7 +17,7 @@ class ChainLibbtc : public IChain
 public:
     typedef struct ::btc_chainparams_ btc_chainparams;
 
-    ChainLibbtc(std::string const & technology, btc_chainparams const & chainparams);
+    ChainLibbtc(std::string const & technology, btc_chainparams const & chainparams, std::vector<Flag> const &flags);
     ~ChainLibbtc();
 
     void connect() override;

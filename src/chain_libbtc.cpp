@@ -24,8 +24,8 @@ static std::string utils_uint256_to_reversed_hex(uint256 const & bin)
     return {hex, sizeof(hex)};
 }
 
-ChainLibbtc::ChainLibbtc(std::string const & technology, btc_chainparams const & chainparams)
-: IChain(technology, chainparams.chainname),
+ChainLibbtc::ChainLibbtc(std::string const & technology, btc_chainparams const & chainparams, std::vector<Flag> const & flags)
+: IChain(technology, chainparams.chainname, flags),
   libbtc_chainparams(chainparams),
   libbtc_spvclient(nullptr, btc_spv_client_free),
   stopping(false)
@@ -50,14 +50,21 @@ ChainLibbtc::~ChainLibbtc()
 /*static*/ ChainLibbtc::btc_bool ChainLibbtc::netspv_header_message_processed(btc_spv_client *libbtc_spvclient, btc_node *node, btc_blockindex *newtip)
 {
     ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->sync_transaction_ctx);
-    (void)self;
+
+    // note: we know the specific peer node that gave us this new block
+    self->on_block(utils_uint256_to_reversed_hex(newtip->hash));
+
     return true;
 }
 
 /*static*/ void ChainLibbtc::netspv_sync_transaction(void *ctx, btc_tx *tx, unsigned int pos, btc_blockindex *blockindex)
 {
     ChainLibbtc *self = static_cast<ChainLibbtc*>(ctx);
-    (void)self;
+
+    uint256 binhash;
+    btc_tx_hash(tx, binhash);
+
+    self->on_tx(utils_uint256_to_reversed_hex(binhash));
 }
 
 void ChainLibbtc::connect()
