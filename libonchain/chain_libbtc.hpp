@@ -28,9 +28,12 @@ private:
     static void netspv_sync_completed(struct btc_spv_client_ *libbtc_spvclient);
     static void netspv_header_message_processed(struct btc_spv_client_ *libbtc_spvclient, struct btc_node_ *node, struct btc_blockindex_ *newtip);
     static void netspv_sync_transaction(void *sync_ctx, struct btc_tx_ *tx, unsigned int pos, struct btc_blockindex_ *blockindex);
-    static uint8_t netspv_periodic_timer(struct btc_node_ *node, uint864_t *time);
 
     std::thread runloop;
+    bool stopping;
+    std::mutex mtx;
+    std::unique_lock<std::mutex> lock;
+    static void run();
 };
 
 }
