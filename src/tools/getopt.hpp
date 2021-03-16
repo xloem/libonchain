@@ -57,9 +57,9 @@ std::unordered_map<std::string, std::vector<std::string>> getopt(std::string nam
             size_t len = opt.long_name.size();
             std::cout << "  ";
             if (opt.short_name) {
-                std::cout << "-" << opt.short_name << ",";
+                std::cout << "-" << opt.short_name << ", ";
             } else {
-                std::cout << "   ";
+                std::cout << "    ";
             }
             if (opt.long_name.size()) {
                 std::cout << "--" << opt.long_name;
@@ -75,12 +75,12 @@ std::unordered_map<std::string, std::vector<std::string>> getopt(std::string nam
                     std::cout << "  ";
                 }
             }
-            for (size_t len = opt.long_name.size(); len < max_longname_len; len ++) {
+            for (; len < max_longname_len; len ++) {
                 std::cout << " ";
             }
             std::cout << " " << opt.help << std::endl;
-            exit(0);
         }
+        exit(0);
     }
     return args;
 }
