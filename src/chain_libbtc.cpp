@@ -38,18 +38,18 @@ ChainLibbtc::~ChainLibbtc()
 
 /*static*/ void ChainLibbtc::netspv_header_connected(btc_spv_client *libbtc_spvclient)
 {
-    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->nodegroup->ctx);
+    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->sync_transaction_ctx);
 }
 
 /*static*/ void ChainLibbtc::netspv_sync_completed(btc_spv_client *libbtc_spvclient)
 {
-    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->nodegroup->ctx);
+    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->sync_transaction_ctx);
     self->on_connectionstate(ConnectionState::CONNECTED);
 }
 
 /*static*/ ChainLibbtc::btc_bool ChainLibbtc::netspv_header_message_processed(btc_spv_client *libbtc_spvclient, btc_node *node, btc_blockindex *newtip)
 {
-    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->nodegroup->ctx);
+    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->sync_transaction_ctx);
     (void)self;
     return true;
 }
@@ -69,9 +69,7 @@ void ChainLibbtc::connect()
         bool debug = true;
 #endif
         libbtc_spvclient.reset(btc_spv_client_new(&libbtc_chainparams, debug, /*mem only*/false));
-        libbtc_spvclient->headers_db_ctx = this;
         libbtc_spvclient->sync_transaction_ctx = this;
-        libbtc_spvclient->nodegroup->ctx = this;
         libbtc_spvclient->header_connected = netspv_header_connected;
         libbtc_spvclient->sync_completed = netspv_sync_completed;
         libbtc_spvclient->header_message_processed = netspv_header_message_processed;
@@ -134,7 +132,7 @@ std::string ChainLibbtc::root()
 
 std::vector<std::string> ChainLibbtc::tips()
 {
-    btc_blockindex *tip = libbtc_spvclient->headers_db->getchaintip(libbtc_spvclient->headers_db);
+    btc_blockindex *tip = libbtc_spvclient->headers_db->getchaintip(libbtc_spvclient->headers_db_ctx);
     std::cerr << "warning: tips() function is plural but presently returning only the longest tip" << std::endl;
     std::cerr << "        it would be polite to make sure all transactions are in the longest tip" << std::endl;
     return {utils_uint256_to_reversed_hex(tip->hash)};
