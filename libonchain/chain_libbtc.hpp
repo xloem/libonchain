@@ -48,7 +48,7 @@ private:
     bool stopping;
     std::mutex mtx;
     std::unique_lock<std::mutex> lock;
-    static void run();
+    void run();
 };
 
 }

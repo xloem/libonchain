@@ -6,9 +6,11 @@
 #include <btc/utils.h>
 #include <event2/event.h>
 
+#include <iostream> // debugging
+
 namespace libonchain {
 
-static std::string utils_uint256_to_reversed_hex(uint256 bin)
+static std::string utils_uint256_to_reversed_hex(uint256 const & bin)
 {
     static char const digits[] = "0123456789abcdef";
     char hex[sizeof(decltype(bin)) * 2];
@@ -96,13 +98,13 @@ void ChainLibbtc::connect()
     int event_state;
     do {
         {
-            std::unique_lock lk(mtx);
+            std::unique_lock<std::mutex> lk(mtx);
             btc_node_group_connect_next_nodes(libbtc_spvclient->nodegroup);
         }
     
         // process all pending events until there are none, which happens when all nodes are disconnected
         do {
-            std::unique_lock lk(mtx);
+            std::unique_lock<std::mutex> lk(mtx);
             event_state = event_base_loop(libbtc_spvclient->nodegroup->event_base, EVLOOP_ONCE);
             if (event_state == -1) {
                 throw std::runtime_error("libevent error");
@@ -115,14 +117,14 @@ void ChainLibbtc::disconnect()
 {
     if (runloop.joinable()) {
         {
-            std::unique_lock lk(mtx);
+            std::unique_lock<std::mutex> lk(mtx);
             stopping = true;
-            btc_node_group_shutdown(btc_spv_client->nodegroup); // this disconnects all peers but does not terminate the loop
+            btc_node_group_shutdown(libbtc_spvclient->nodegroup); // disconnects all peers
         }
         runloop.join();
         stopping = false;
     }
-    btc_spv_client.reset();
+    libbtc_spvclient.reset();
 }
 
 std::string ChainLibbtc::root()
@@ -130,7 +132,6 @@ std::string ChainLibbtc::root()
     return utils_uint256_to_reversed_hex(libbtc_chainparams.genesisblockhash);
 }
 
-#include <iostream>
 std::vector<std::string> ChainLibbtc::tips()
 {
     btc_blockindex *tip = libbtc_spvclient->headers_db->getchaintip(libbtc_spvclient->headers_db);
