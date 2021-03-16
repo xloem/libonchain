@@ -5,15 +5,16 @@ project(libonchain)
 
 execute_process(COMMAND git submodule update --init --recursive WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
+# note: the Fetch commands are maintained better than ExternalProject and accept the same behavior
 ExternalProject_add(
-    libbtc_project SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/libbtc/libbtc
+    libbtc_submodule SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/libbtc
     PATCH_COMMAND ./autogen.sh CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
-    BUILD_COMMAND make INSTALL_COMMAND make install TEST_COMMAND make check
+    BUILD_COMMAND make INSTALL_COMMAND make install #TEST_COMMAND make check
 )
-# this also makes a pkgconfig file that could be used.  for some reason the btc includes are not installed in a btc subfolder; they really look intended to be.
+ExternalProject_Get_Property(libbtc_submodule INSTALL_DIR)
+# note: this also makes a pkgconfig file that could be used.  for some reason the btc includes are not installed in a btc subfolder; they really look intended to be.
 add_library(libbtc INTERFACE)
-add_dependencies(libbtc libbtc_project)
-ExternalProject_Get_Property(libbtc_project INSTALL_DIR)
+add_dependencies(libbtc libbtc_submodule)
 target_link_libraries(libbtc INTERFACE ${INSTALL_DIR}/lib/libbtc.a)
 target_include_directories(libbtc INTERFACE ${INSTALL_DIR}/include)
 

@@ -1,6 +1,7 @@
-[submodule "deps/cinemast/libjson-rpc-cpp"]
-	path = deps/cinemast/libjson-rpc-cpp
+[submodule "deps/libjson-rpc-cpp"]
+	path = deps/libjson-rpc-cpp
 	url = https://github.com/cinemast/libjson-rpc-cpp.git
-[submodule "deps/libbtc/libbtc"]
-	path = deps/libbtc/libbtc
-	url = https://github.com/libbtc/libbtc.git
+[submodule "deps/libbtc"]
+	path = deps/libbtc
+	url = https://github.com/xloem/libbtc.git
+	branch = includedir
