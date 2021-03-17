@@ -35,7 +35,19 @@ void Chain::on_connectionstate(ConnectionState state)
         return;
     }
 
-    std::cerr << name << ": " << state << std::endl;
+    std::cerr << name << ": ";
+    switch(state) {
+    case DISCONNECTED:
+        std::cerr << "disconnected";
+        break;
+    case CONNECTING:
+        std::cerr << "connecting";
+        break;
+    case CONNECTED:
+        std::cerr << "connected";
+        break;
+    }
+    std::cerr << std::endl;
 
     if (state == DISCONNECTED) {
         std::unique_lock<std::mutex> lk(_staticMtx);

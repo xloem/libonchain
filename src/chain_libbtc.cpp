@@ -104,6 +104,7 @@ void ChainLibbtc::connect()
     do {
         {
             std::unique_lock<std::mutex> lk(mtx);
+            btc_node_group_add_peers_by_ip_or_seed(libbtc_spvclient->nodegroup, NULL/*char const *, comma separated ips*/);
             btc_node_group_connect_next_nodes(libbtc_spvclient->nodegroup);
         }
     
