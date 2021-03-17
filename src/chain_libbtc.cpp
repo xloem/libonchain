@@ -150,7 +150,7 @@ Chain::Block ChainLibbtc::block(std::string const & id)
     throw std::runtime_error("todo: retrieve block height and parent from headers.");
 }
 
-std::vector<std::string> txs(std::string const & block = "mempool")
+std::vector<std::string> ChainLibbtc::txs(std::string const & block/* = "mempool"*/)
 {
     throw std::runtime_error("todo: retrieve block content from peers.  we have their inventories.");
 }

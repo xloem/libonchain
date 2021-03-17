@@ -35,6 +35,8 @@ void Chain::on_connectionstate(ConnectionState state)
         return;
     }
 
+    std::cerr << name << ": " << state << std::endl;
+
     if (state == DISCONNECTED) {
         std::unique_lock<std::mutex> lk(_staticMtx);
         _connectedChains.erase(name);
@@ -47,12 +49,12 @@ void Chain::on_connectionstate(ConnectionState state)
 
 void Chain::on_block(std::string id)
 {
-    std::cerr << "Block: " << id << std::endl;
+    std::cerr << name << " block: " << id << std::endl;
 }
 
 void Chain::on_tx(std::string id)
 {
-    std::cerr << "Tx: " << id << std::endl;
+    std::cerr << name << " tx: " << id << std::endl;
 }
 
 } // namespace libonchain
