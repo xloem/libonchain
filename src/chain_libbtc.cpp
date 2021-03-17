@@ -39,6 +39,7 @@ ChainLibbtc::~ChainLibbtc()
 /*static*/ void ChainLibbtc::netspv_header_connected(btc_spv_client *libbtc_spvclient)
 {
     ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->sync_transaction_ctx);
+    std::cerr << "netspv_header_connected: " << self->tips()[0] << std::endl;
 }
 
 /*static*/ void ChainLibbtc::netspv_sync_completed(btc_spv_client *libbtc_spvclient)

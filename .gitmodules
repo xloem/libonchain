@@ -4,7 +4,6 @@
 [submodule "deps/libbtc"]
 	path = deps/libbtc
 	url = https://github.com/xloem/libbtc.git
-	branch = includedir
 [submodule "deps/secp256k1"]
 	path = deps/secp256k1
 	url = https://github.com/bitcoin-core/secp256k1.git
