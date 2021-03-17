@@ -42,6 +42,8 @@ public:
     virtual Block block(std::string const & id) = 0;
 
     virtual std::vector<std::string> txs(std::string const & block = "mempool") = 0;
+    
+    virtual std::string txBroadcast(std::vector<uint8_t> const & tx) = 0;
 
     static std::unordered_map<std::string, Chain *> const & chains() { return _chains; }
 

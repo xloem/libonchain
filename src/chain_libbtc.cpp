@@ -68,6 +68,53 @@ ChainLibbtc::~ChainLibbtc()
     self->on_tx(utils_uint256_to_reversed_hex(binhash));
 }
 
+/*static*/ int ChainLibbtc::net_log_write(char const *format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    va_end(ap);
+    return 1;
+}
+
+/*static*/ btc_bool ChainLibbtc::net_parse_cmd(btc_node *node, btc_p2p_msg_hdr *hdr, const_buffer *buf)
+{
+    btc_spv_client *libbtc_spvclient = static_cast<btc_spv_client*>(node->nodegroup->ctx);
+    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->sync_transaction_ctx);
+}
+
+/*static*/ void ChainLibbtc::net_node_connection_state_changed(btc_node *node)
+{
+    btc_spv_client *libbtc_spvclient = static_cast<btc_spv_client*>(node->nodegroup->ctx);
+    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->sync_transaction_ctx);
+}
+
+/*static*/ btc_bool ChainLibbtc::net_should_connect_to_more_nodes(btc_node *node)
+{
+    btc_spv_client *libbtc_spvclient = static_cast<btc_spv_client*>(node->nodegroup->ctx);
+    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->sync_transaction_ctx);
+}
+
+#if 0 // netspv sets these itself
+/*static*/ void ChainLibbtc::net_postcmd(btc_node *node, btc_p2p_msg_hdr *hdr, const_buffer *buf)
+{
+    btc_spv_client *libbtc_spvclient = static_cast<btc_spv_client*>(node->nodegroup->ctx);
+    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->sync_transaction_ctx);
+}
+
+/*static*/ void ChainLibbtc::net_handshake_done(btc_node *node)
+{
+    btc_spv_client *libbtc_spvclient = static_cast<btc_spv_client*>(node->nodegroup->ctx);
+    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->sync_transaction_ctx);
+}
+
+/*static*/ btc_bool ChainLibbtc::net_periodic_timer(btc_node *node, uint64_t *time)
+{
+    btc_spv_client *libbtc_spvclient = static_cast<btc_spv_client*>(node->nodegroup->ctx);
+    ChainLibbtc *self = static_cast<ChainLibbtc*>(libbtc_spvclient->sync_transaction_ctx);
+}
+#endif
+
 void ChainLibbtc::connect()
 {
     if (!libbtc_spvclient) {
@@ -82,13 +129,15 @@ void ChainLibbtc::connect()
         libbtc_spvclient->sync_completed = netspv_sync_completed;
         libbtc_spvclient->header_message_processed = netspv_header_message_processed;
         libbtc_spvclient->sync_transaction = netspv_sync_transaction;
-        // libbtc_spvclient->nodegroup->log_write_cb
-        // libbtc_spvclient->nodegroup->parse_cmd_cb
-        // libbtc_spvclient->nodegroup->postcmd_cb
-        // libbtc_spvclient->nodegroup->node_connection_state_changed_cb
-        // libbtc_spvclient->nodegroup->should_connect_to_more_nodes_cb
-        // libbtc_spvclient->nodegroup->handshake_done_cb
-        // libbtc_spvclient->nodegroup->periodic_timer_cb 
+        // libbtc_spvclient->nodegroup->log_write_cb = net_log_write; netspv sets this to printf if debug is set
+        libbtc_spvclient->nodegroup->parse_cmd_cb = net_parse_cmd;
+        libbtc_spvclient->nodegroup->node_connection_state_changed_cb = net_node_connection_state_changed;
+        libbtc_spvclient->nodegroup->should_connect_to_more_nodes_cb = net_should_connect_to_more_nodes;
+        /* netspv sets these itself
+        libbtc_spvclient->nodegroup->postcmd_cb = net_postcmd;
+        libbtc_spvclient->nodegroup->handshake_done_cb = net_handshake_done;
+        libbtc_spvclient->nodegroup->periodic_timer_cb = net_periodic_timer;
+        */
         // libbtc_spvclient->headers_db
         
         // libbtc_spvclient->nodegroup->event_base // the libevent2 event structure
@@ -161,5 +210,18 @@ std::vector<std::string> ChainLibbtc::txs(std::string const & block/* = "mempool
 {
     throw std::runtime_error("todo: retrieve block content from peers.  we have their inventories.");
 }
+
+std::string ChainLibbtc::txBroadcast(std::vector<uint8_t> const & tx)
+{
+    std::unique_ptr<btc_tx, void(*)(btc_tx*)> libbtc_tx(btc_tx_new(), btc_tx_free);
+    if (!btc_tx_deserialize(tx.data(), tx.size(), libbtc_tx.get(), NULL, true)) {
+        throw std::runtime_error("Transaction is invalid");
+    }
+    {
+        std::unique_lock<std::mutex> lk(mtx);
+        btc_node_group_connect_next_nodes(libbtc_spvclient->nodegroup);
+    }
+    throw std::runtime_error("unimplemented");
+};
 
 }
