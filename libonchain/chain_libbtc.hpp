@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libonchain/IChain.hpp>
+#include <libonchain/chain.hpp>
 #include <mutex>
 #include <thread>
 
@@ -12,7 +12,7 @@ struct btc_tx_;
 
 namespace libonchain {
 
-class ChainLibbtc : public IChain
+class ChainLibbtc : public Chain
 {
 public:
     typedef struct ::btc_chainparams_ btc_chainparams;
@@ -50,5 +50,10 @@ private:
     std::unique_lock<std::mutex> lock;
     void run();
 };
+
+extern ChainLibbtc bsv_main;
+extern ChainLibbtc bsv_stn;
+extern ChainLibbtc bsv_testnet;
+extern ChainLibbtc bsv_regtest;
 
 }

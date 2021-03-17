@@ -25,7 +25,7 @@ static std::string utils_uint256_to_reversed_hex(uint256 const & bin)
 }
 
 ChainLibbtc::ChainLibbtc(std::string const & technology, btc_chainparams const & chainparams, std::vector<Flag> const & flags)
-: IChain(technology, chainparams.chainname, flags),
+: Chain(technology, chainparams.chainname, flags),
   libbtc_chainparams(chainparams),
   libbtc_spvclient(nullptr, btc_spv_client_free),
   stopping(false)
@@ -145,7 +145,7 @@ std::vector<std::string> ChainLibbtc::tips()
     return {utils_uint256_to_reversed_hex(tip->hash)};
 }
 
-IChain::Block ChainLibbtc::block(std::string const & id)
+Chain::Block ChainLibbtc::block(std::string const & id)
 {
     throw std::runtime_error("todo: retrieve block height and parent from headers.");
 }

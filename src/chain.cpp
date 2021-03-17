@@ -1,14 +1,15 @@
-#include <libonchain/IChain.hpp>
+#include <libonchain/chain.hpp>
+#include <libonchain/chain_libbtc.hpp>
 
 #include <iostream> // debugging
 
 namespace libonchain {
 
-std::mutex IChain::_staticMtx;
-std::unordered_map<std::string, IChain *> IChain::_chains;
-std::unordered_map<std::string, IChain *> IChain::_connectedChains;
+std::mutex Chain::_staticMtx;
+std::unordered_map<std::string, Chain *> Chain::_chains;
+std::unordered_map<std::string, Chain *> Chain::_connectedChains;
 
-IChain::IChain(std::string const & technology, std::string const & chain, std::vector<Flag> const & flags)
+Chain::Chain(std::string const & technology, std::string const & chain, std::vector<Flag> const & flags)
 : name(technology + "." + chain),
   technology(technology),
   chain(chain),
@@ -22,13 +23,13 @@ IChain::IChain(std::string const & technology, std::string const & chain, std::v
     _chains.insert({name, this});
 }
 
-IChain::~IChain()
+Chain::~Chain()
 {
     std::unique_lock<std::mutex> lk(_staticMtx);
     _chains.erase(name);
 }
 
-void IChain::on_connectionstate(ConnectionState state)
+void Chain::on_connectionstate(ConnectionState state)
 {
     if (state == _connectionState) {
         return;
@@ -44,14 +45,17 @@ void IChain::on_connectionstate(ConnectionState state)
     _connectionState = state;
 }
 
-void IChain::on_block(std::string id)
+void Chain::on_block(std::string id)
 {
     std::cerr << "Block: " << id << std::endl;
 }
 
-void IChain::on_tx(std::string id)
+void Chain::on_tx(std::string id)
 {
     std::cerr << "Tx: " << id << std::endl;
 }
 
 } // namespace libonchain
+
+// same translation unit so that the linker doesn't optimise away
+#include "chain_libbtc_bsv.ipp"

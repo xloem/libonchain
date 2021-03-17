@@ -1,12 +1,12 @@
 #include "getopt.hpp"
 
-#include <libonchain/IChain.hpp>
+#include <libonchain/chain.hpp>
 
 using namespace libonchain;
 
 int main(int argc, char *argv[])
 {
-    for (auto & chain : IChain::chains()) {
+    for (auto & chain : Chain::chains()) {
         std::cout << "chain: " << chain.first << std::endl;
     }
     auto args = getopt("onchain", argc, argv, {

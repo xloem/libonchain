@@ -8,7 +8,7 @@
 
 namespace libonchain {
 
-class IChain
+class Chain
 {
 public:
     enum Flag {
@@ -43,11 +43,11 @@ public:
 
     virtual std::vector<std::string> txs(std::string const & block = "mempool") = 0;
 
-    static std::unordered_map<std::string, IChain *> const & chains() { return _chains; }
+    static std::unordered_map<std::string, Chain *> const & chains() { return _chains; }
 
 protected:
-    IChain(std::string const & technology, std::string const & chain, std::vector<Flag> const & flags);
-    ~IChain();
+    Chain(std::string const & technology, std::string const & chain, std::vector<Flag> const & flags);
+    ~Chain();
 
     void on_connectionstate(ConnectionState state);
     void on_block(std::string id);
@@ -56,8 +56,8 @@ protected:
     ConnectionState _connectionState;
 
     static std::mutex _staticMtx;
-    static std::unordered_map<std::string, IChain *> _chains;
-    static std::unordered_map<std::string, IChain *> _connectedChains;
+    static std::unordered_map<std::string, Chain *> _chains;
+    static std::unordered_map<std::string, Chain *> _connectedChains;
 };
 
 }

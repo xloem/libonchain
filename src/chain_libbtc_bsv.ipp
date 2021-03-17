@@ -4,7 +4,7 @@
 
 namespace libonchain {
 
-static const btc_chainparams bsv_chainparams_main = {
+const btc_chainparams libbtc_chainparams_bsv_main = {
     // strNetworkID
     "main",
     // base58Prefixes[PUBKEY_ADDRESS}
@@ -29,7 +29,7 @@ static const btc_chainparams bsv_chainparams_main = {
     {{"seed.bitcoinsv.io"}, {"seed.cascharia.com"}, {"seed.satoshisvision.network"}, 0},
 };
 
-static const btc_chainparams bsv_chainparams_stn = {
+const btc_chainparams libbtc_chainparams_bsv_stn = {
     // strNetworkID
     "stn",
     // base58Prefixes[PUBKEY_ADDRESS}
@@ -54,7 +54,7 @@ static const btc_chainparams bsv_chainparams_stn = {
     {{"stn-seed.bitcoinsv.io"}, 0},
 };
 
-static const btc_chainparams bsv_chainparams_testnet = {
+const btc_chainparams libbtc_chainparams_bsv_testnet = {
     // strNetworkID
     "test",
     // base58Prefixes[PUBKEY_ADDRESS}
@@ -79,7 +79,7 @@ static const btc_chainparams bsv_chainparams_testnet = {
     {{"testnet-seed.bitcoinsv.io"}, {"testnet-seed.cascharia.com"}, {"testnet-seed.bitcoincloud.net"}, 0},
 };
 
-static const btc_chainparams bsv_chainparams_regtest = {
+const btc_chainparams libbtc_chainparams_bsv_regtest = {
     // strNetworkID
     "regtest",
     // base58Prefixes[PUBKEY_ADDRESS}
@@ -104,9 +104,9 @@ static const btc_chainparams bsv_chainparams_regtest = {
     {0},
 };
 
-libonchain::ChainLibbtc bsv_main("bsv", bsv_chainparams_main, {});
-libonchain::ChainLibbtc bsv_stn("bsv", bsv_chainparams_stn, {IChain::CHAIN_TEST});
-libonchain::ChainLibbtc bsv_testnet("bsv", bsv_chainparams_testnet, {IChain::CHAIN_TEST});
-libonchain::ChainLibbtc bsv_regtest("bsv", bsv_chainparams_regtest, {IChain::CHAIN_TEST, IChain::CHAIN_PRIVATE});
+libonchain::ChainLibbtc bsv_main("bsv", libbtc_chainparams_bsv_main, {});
+libonchain::ChainLibbtc bsv_stn("bsv", libbtc_chainparams_bsv_stn, {Chain::CHAIN_TEST});
+libonchain::ChainLibbtc bsv_testnet("bsv", libbtc_chainparams_bsv_testnet, {Chain::CHAIN_TEST});
+libonchain::ChainLibbtc bsv_regtest("bsv", libbtc_chainparams_bsv_regtest, {Chain::CHAIN_TEST, Chain::CHAIN_PRIVATE});
 
 }
