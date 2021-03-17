@@ -17,8 +17,8 @@ static std::string utils_uint256_to_reversed_hex(uint256 const & bin)
 
     size_t i, j;
     for (i = 0, j = sizeof(hex); i < sizeof(decltype(bin)); i ++) {
-        hex[-- j] = digits[(bin[i] >> 4) & 0xF];
         hex[-- j] = digits[bin[i] & 0xF];
+        hex[-- j] = digits[(bin[i] >> 4) & 0xF];
     }
 
     return {hex, sizeof(hex)};
