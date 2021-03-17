@@ -91,6 +91,12 @@ void ChainLibbtc::connect()
         // libbtc_spvclient->headers_db
         
         // libbtc_spvclient->nodegroup->event_base // the libevent2 event structure
+        //
+        std::string headersdb = name + ".headers.db";
+        if (!btc_spv_client_load(libbtc_spvclient.get(), headersdb.c_str())) {
+            throw std::runtime_error("could not load or create headers database: " + headersdb);
+        }
+        btc_node_group_add_peers_by_ip_or_seed(libbtc_spvclient->nodegroup, NULL/*char const *, comma separated ips*/);
     }
     if (!runloop.joinable()) {
         on_connectionstate(ConnectionState::CONNECTING);
@@ -104,7 +110,6 @@ void ChainLibbtc::connect()
     do {
         {
             std::unique_lock<std::mutex> lk(mtx);
-            btc_node_group_add_peers_by_ip_or_seed(libbtc_spvclient->nodegroup, NULL/*char const *, comma separated ips*/);
             btc_node_group_connect_next_nodes(libbtc_spvclient->nodegroup);
         }
     

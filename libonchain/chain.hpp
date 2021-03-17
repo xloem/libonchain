@@ -33,7 +33,7 @@ public:
     std::string const chain;
     std::unordered_set<Flag> const flags;
 
-    virtual void connect() = 0;
+    virtual void connect(/*TODO: optionally pass datadir or list of seed peer ips*/) = 0;
     virtual void disconnect() = 0;
     ConnectionState const & connectionState() { return _connectionState; }
 
