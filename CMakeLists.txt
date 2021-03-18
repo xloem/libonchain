@@ -2,11 +2,14 @@ cmake_minimum_required(VERSION 3.11)
 
 project(libonchain)
 
-find_package(Threads)
+find_package(Threads REQUIRED)
 find_package(PkgConfig)
 include(ExternalProject)
 
 execute_process(COMMAND git submodule update --init --recursive WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+SET(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "Run cpplint.py tool within SQLiteC++")
+add_subdirectory(deps/sqlitecpp)
 
 add_library(libbtc INTERFACE)
     ExternalProject_add(
@@ -34,8 +37,9 @@ add_library(libbtc INTERFACE)
     target_link_libraries(libbtc INTERFACE btc secp256k1 gmp PkgConfig::libevent)
 
 add_library(onchain src/chain.cpp src/chain_libbtc.cpp)
-target_link_libraries(onchain PRIVATE Threads::Threads libbtc)# PkgConfig::libsecp256k1 PkgConfig::libbtc)
-target_include_directories(onchain PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})# ${INSTALL_DIR}/include)
+target_link_libraries(onchain PRIVATE Threads::Threads libbtc SQLiteCpp)
+target_include_directories(onchain PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_options(onchain PUBLIC -Wall -pedantic -Werror -Wno-unused-variable)
 
 add_executable(onchain-bin src/tools/onchain.cpp)
 target_link_libraries(onchain-bin onchain)

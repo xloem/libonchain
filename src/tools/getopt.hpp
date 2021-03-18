@@ -20,7 +20,7 @@ std::unordered_map<std::string, std::vector<std::string>> getopt(std::string nam
     std::string optstring = "h";
     std::vector<struct option> long_options = {{"help", 0, 0, -2}};
     std::unordered_set<uint8_t> required;
-    for (int i = 0; i < options.size(); i ++) {
+    for (int i = 0; i < (int)options.size(); i ++) {
         auto & opt = options[i];
         optstring += opt.short_name;
         if (opt.arg_name.size()) {
