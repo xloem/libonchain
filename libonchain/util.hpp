@@ -48,7 +48,7 @@ std::string concat_join(std::string const & prefix, Iterable const & iterable, s
 }
 
 template <typename Iterable, typename Type>
-std::vector<Type> replace_join(Iterable const & iterable, Type value, std::string const & joiner = ", ")
+std::string replace_join(Iterable const & iterable, Type value, std::string const & joiner = ", ")
 {
     return map_join(iterable, [&value](std::string const &) { return value; }, joiner);
 }
@@ -59,6 +59,13 @@ std::string join(Iterable const & iterable, std::string const & joiner = ", ")
     return map_join(iterable, [](std::string const & value) { return value; }, joiner);
 }
 
+struct byterange : public std::pair<char const *, size_t>
+{
+    using std::pair<char const *, size_t>::pair;
+    char const * data() { return first; }
+    size_t size() { return second; }
+};
+
 template <typename value_type>
 class virtual_iterator
 {
@@ -66,9 +73,9 @@ public:
     struct impl
     {
         virtual void next(int n = 1) = 0;
-        virtual value_type const & deref_const() const = 0;
+        virtual value_type const & deref() = 0;
         virtual bool equal(impl const & other) const = 0;
-        virtual std::unique_ptr<impl> copy() const = 0;
+        virtual std::unique_ptr<impl> copy() = 0;
         //virtual std::type_info & type() const = 0;
         //virtual ... address() const = 0
         virtual ~impl() = default;
