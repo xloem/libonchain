@@ -13,10 +13,8 @@ class DataSqlite : public Data
 public:
     std::string const filename;
     std::string const table;
-    std::string const columnKey;
-    std::string const columnValue;
 
-    DataSqlite(std::string const & filename = "libonchain.sqlite", std::string const & table = "libonchain", std::string const & column = "key", std::string const & column = "value");
+    DataSqlite(std::string const & filename = "libonchain.sqlite", std::string const & table = "libonchain", std::vector<std::string> const & keys = {"key"}, std::vector<std::string> const & values = {"value"});
     ~DataSqlite();
 
     void add(std::string const & key, std::string const & value) override;
