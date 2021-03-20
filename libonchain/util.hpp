@@ -2,6 +2,16 @@
 
 namespace libonchain {
 
+template <typename Type, typename Iterable, typename Func>
+std::vector<Type> map(Iterable const & iterable, Func const & func)
+{
+    std::vector<Type> result;
+    for (auto & item : iterable) {
+        result.push_back(func(item));
+    }
+    return result;
+}
+
 template <typename Iterable, typename Func>
 std::string map_join(Iterable const & iterable, Func const & func, std::string const & joiner = ", ")
 {
@@ -16,6 +26,13 @@ std::string map_join(Iterable const & iterable, Func const & func, std::string c
         result += func(item);
     }
     return result;
+}
+
+template <typename Type>
+std::vector<Type> concat(std::vector<Type> prefix, std::vector<Type> const & suffix)
+{
+    prefix.insert(prefix.end(), suffix.begin(), suffix.end());
+    return prefix;
 }
 
 template <typename Iterable>
