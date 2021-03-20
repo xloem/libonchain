@@ -5,8 +5,8 @@
 
 namespace libonchain {
 
-Data::Data(std::string const & technology, std::string const & address, std::vector<std::string> const & keys, std::vector<Flag> const & flags)
-: name(technology + "." + address 
+Data::Data(std::string const & technology, std::string const & address, std::string const & key, std::vector<std::string> const & values, std::vector<Flag> const & flags)
+: name(technology + "." + address + "." + key + "." + 
 {
 }
 

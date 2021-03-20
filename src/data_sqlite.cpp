@@ -94,46 +94,6 @@ static Statement bind(Statement statement, size_t index = 0)
 }
 */
 
-template <typename Iterable, typename Func>
-std::string mapjoin(Iterable const & iterable, Func const & func, std::string const & joiner = ", ")
-{
-    std::string result;
-    bool first = true;
-    for (auto & item : iter) {
-        if (first) {
-            first = false;
-        } else {
-            result += joiner;
-        }
-        result += func(item);
-    }
-    return result;
-}
-
-template <typename Iterable>
-std::string concatall(Iterable const & iterable, std::string const & suffix, std::string const & joiner = ", ")
-{
-    return mapjoin(iterable, [&suffix](std::string const & prefix) { return prefix + suffix; }, joiner);
-}
-
-template <typename Iterable>
-std::string concatall(std::string const & prefix, Iterable const & iterable, std::string const & joiner = ", ")
-{
-    return mapjoin(iterable, [&prefix](std::string const & suffix) { return prefix + suffix; }, joiner);
-}
-
-template <typename Iterable>
-std::vector<Type> replaceall(Iterable const & iterable, Type value, std::string const & joiner = ", ")
-{
-    return mapjoin(iterable, [](std::string const &) { return value; }, joiner);
-}
-
-template <typename Iterable>
-std::vector<Type> join(Iterable const & iterable, std::string const & joiner = ", ")
-{
-    return mapjoin(iterable, [](std::string const & value) { return value; }, joiner);
-}
-
 DataSqlite::DataSqlite(std::string const & filename /*= "libonchain"*/, std::string const & table /*= "libonchain"*/, std::vector<std::string> const & columnKeys /*= {"key"}*/, std::vector<std::string> const & columnValues /*= {"value"}*/)
 : Data("sqlite", filename + ":" + table, columnKeys, columnValues, {DATA_KEYVALUE}),
   filename(filename),
