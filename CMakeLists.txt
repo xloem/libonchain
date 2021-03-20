@@ -36,7 +36,7 @@ add_library(libbtc INTERFACE)
     add_dependencies(libbtc secp256k1_submodule libbtc_submodule)
     target_link_libraries(libbtc INTERFACE btc secp256k1 gmp PkgConfig::libevent)
 
-add_library(onchain src/chain.cpp src/chain_libbtc.cpp)
+add_library(onchain src/chain.cpp src/chain_libbtc.cpp src/data.cpp src/data_sqlite.cpp)
 target_link_libraries(onchain PRIVATE Threads::Threads libbtc SQLiteCpp)
 target_include_directories(onchain PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_options(onchain PUBLIC -Wall -pedantic -Werror -Wno-unused-variable)
