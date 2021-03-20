@@ -40,4 +40,4 @@ protected:
     virtual virtual_iterator<char const *>::impl * end_new() = 0;
 };
 
-};
+} // namespace libonchain
