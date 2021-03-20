@@ -1,5 +1,7 @@
 #include <libonchain/chain_libbtc.hpp>
 
+#define true true
+#define false false
 #include <btc/chainparams.h>
 #include <btc/net.h>
 #include <btc/netspv.h>
