@@ -1,5 +1,7 @@
 #include <libonchain/chain_libbtc.hpp>
 
+#define true true
+#define false false
 #include <btc/chainparams.h>
 
 namespace libonchain {
@@ -26,7 +28,7 @@ const btc_chainparams libbtc_chainparams_bsv_main = {
     // nDefaultPort
     8333,
     // vSeeds
-    {{"seed.bitcoinsv.io"}, {"seed.cascharia.com"}, {"seed.satoshisvision.network"}, 0},
+    {{"seed.bitcoinsv.io"}, {"seed.cascharia.com"}, {"seed.satoshisvision.network"}, {0}},
 };
 
 const btc_chainparams libbtc_chainparams_bsv_stn = {
@@ -51,7 +53,7 @@ const btc_chainparams libbtc_chainparams_bsv_stn = {
     // nDefaultPort
     9333,
     // vSeeds
-    {{"stn-seed.bitcoinsv.io"}, 0},
+    {{"stn-seed.bitcoinsv.io"}, {0}},
 };
 
 const btc_chainparams libbtc_chainparams_bsv_testnet = {
@@ -76,7 +78,7 @@ const btc_chainparams libbtc_chainparams_bsv_testnet = {
     // nDefaultPort
     18333,
     // vSeeds
-    {{"testnet-seed.bitcoinsv.io"}, {"testnet-seed.cascharia.com"}, {"testnet-seed.bitcoincloud.net"}, 0},
+    {{"testnet-seed.bitcoinsv.io"}, {"testnet-seed.cascharia.com"}, {"testnet-seed.bitcoincloud.net"}, {0}},
 };
 
 const btc_chainparams libbtc_chainparams_bsv_regtest = {
@@ -101,7 +103,7 @@ const btc_chainparams libbtc_chainparams_bsv_regtest = {
     // nDefaultPort
     18444,
     // vSeeds
-    {0},
+    {{0}},
 };
 
 libonchain::ChainLibbtc bsv_main("bsv", libbtc_chainparams_bsv_main, {});
