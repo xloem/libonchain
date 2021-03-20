@@ -13,7 +13,9 @@ class Data
 {
 public:
     enum Flag {
-        DATA_KEYVALUE,
+        DATA_ARBITRARY_KEY,
+	DATA_FAST,
+	DATA_IMMUTABLE
     };
 
     // please unify similarity with chain.hpp .  maybe even chain would be a subclass of data, uncertain.  it could auto-connect on use if this doesn't connect.
@@ -25,7 +27,7 @@ public:
     std::unordered_set<Flag> const flags;
 
     // add more features/etc as use is discovered
-    virtual void add(std::string const & key, std::vector<std::vector<uint8_t>> const & values);
+    virtual std::string add(std::vector<std::vector<uint8_t>> const & values);
     virtual std::vector<std::vector<uint8_t>> get(std::string const & key);
     virtual void drop(std::string const & key);
 

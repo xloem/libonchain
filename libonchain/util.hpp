@@ -7,7 +7,7 @@ std::string map_join(Iterable const & iterable, Func const & func, std::string c
 {
     std::string result;
     bool first = true;
-    for (auto & item : iter) {
+    for (auto & item : iterable) {
         if (first) {
             first = false;
         } else {
@@ -21,25 +21,25 @@ std::string map_join(Iterable const & iterable, Func const & func, std::string c
 template <typename Iterable>
 std::string concat_join(Iterable const & iterable, std::string const & suffix, std::string const & joiner = ", ")
 {
-    return mapjoin(iterable, [&suffix](std::string const & prefix) { return prefix + suffix; }, joiner);
+    return map_join(iterable, [&suffix](std::string const & prefix) { return prefix + suffix; }, joiner);
 }
 
 template <typename Iterable>
 std::string concat_join(std::string const & prefix, Iterable const & iterable, std::string const & joiner = ", ")
 {
-    return mapjoin(iterable, [&prefix](std::string const & suffix) { return prefix + suffix; }, joiner);
+    return map_join(iterable, [&prefix](std::string const & suffix) { return prefix + suffix; }, joiner);
 }
 
-template <typename Iterable>
+template <typename Iterable, typename Type>
 std::vector<Type> replace_join(Iterable const & iterable, Type value, std::string const & joiner = ", ")
 {
-    return mapjoin(iterable, [](std::string const &) { return value; }, joiner);
+    return map_join(iterable, [&value](std::string const &) { return value; }, joiner);
 }
 
 template <typename Iterable>
-std::vector<Type> join(Iterable const & iterable, std::string const & joiner = ", ")
+std::string join(Iterable const & iterable, std::string const & joiner = ", ")
 {
-    return mapjoin(iterable, [](std::string const & value) { return value; }, joiner);
+    return map_join(iterable, [](std::string const & value) { return value; }, joiner);
 }
 
 template <typename value_type>
@@ -59,7 +59,7 @@ public:
 
     virtual_iterator(struct impl * _impl) : _impl(_impl) { }
     virtual_iterator(virtual_iterator<value_type> const & other) : _impl(other->_impl->copy()) { }
-    virtual_iterator(virtual_iterator<value_type> && other) : _impl(std::move(other->_impl)) { }
+    virtual_iterator(virtual_iterator<value_type> && other) : _impl(std::move(other._impl)) { }
 
     value_type const & operator*() const
     {

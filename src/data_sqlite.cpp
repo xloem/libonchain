@@ -101,16 +101,16 @@ DataSqlite::DataSqlite(std::string const & filename /*= "libonchain"*/, std::str
   sqlite_db(std::make_unique<Database>(filename, OPEN_READWRITE | OPEN_CREATE))
 {
     if (!sqlite_db.tableExists(table)) {
-        exec("CREATE TABLE " + table + " (" + concatall(columnKeys, " TEXT PRIMARY KEY") + ", " + concatall(columnValues, " BLOB") + ")");
+        exec("CREATE TABLE " + table + " (" + concat_all(columnKeys, " TEXT PRIMARY KEY") + ", " + concat_all(columnValues, " BLOB") + ")");
     }
     // TODO: multikeys
     // TODO: add extra columns to existing tables? could default to null
     //       SQLITE_ENABLE_COLUMN_METADATA might help, haven't reviewed
 
-    add_stmt = std::make_unique(Stmt(sqlite_db, "INSERT INTO " + table + " VALUES (" + replaceall(columnKeys, "?") + ", ", replaceall(columnValues, "?")));
-    get_stmt = std::make_unique(Stmt(sqlite_db, "SELECT " + join(columnValues) + " FROM " + table + " WHERE " + concatall(columnKeys, " == ?", " AND ")));
-    drop_stmt = std::make_unique(Stmt(sqlite_db, "DELETE FROM " + table + " WHERE " + concatall(columnKeys, " == ?", " AND ")));
-    iter_stmt = std::make_unique(Stmt(sqlite_db, "SELECT " + replaceall(columnKeys, "?") + ", " + replaceall(columnValues, "?") + " FROM " + table));
+    add_stmt = std::make_unique(Stmt(sqlite_db, "INSERT INTO " + table + " VALUES (" + replace_all(columnKeys, "?") + ", ", replace_all(columnValues, "?")));
+    get_stmt = std::make_unique(Stmt(sqlite_db, "SELECT " + join(columnValues) + " FROM " + table + " WHERE " + concat_all(columnKeys, " == ?", " AND ")));
+    drop_stmt = std::make_unique(Stmt(sqlite_db, "DELETE FROM " + table + " WHERE " + concat_all(columnKeys, " == ?", " AND ")));
+    iter_stmt = std::make_unique(Stmt(sqlite_db, "SELECT " + replace_all(columnKeys, "?") + ", " + replace_all(columnValues, "?") + " FROM " + table));
     end_stmt = std::make_unique(Stmt(sqlite_db, ""));
 }
 
