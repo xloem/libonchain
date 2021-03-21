@@ -27,11 +27,25 @@ public:
     { }
 
     template <typename... Binds>
+    static std::unique_ptr<Stmt> make(Database & db, std::string const & query, Binds... binds)
+    {
+        try {
+            return std::make_unique<Stmt>(db, query, binds...);
+        } catch (std::exception const & e) {
+            throw std::runtime_error(e.what() + std::string(" query:") + query);
+        }
+    }
+
+    template <typename... Binds>
     int exec(Binds ... binds)
     {
-	std::unique_lock<std::mutex> lk(mtx);
-        _bind(index, binds...);
-        return Statement::exec();
+        try {
+            std::unique_lock<std::mutex> lk(mtx);
+            _bind(index, binds...);
+            return Statement::exec();
+        } catch (std::exception const & e) {
+            throw std::runtime_error(e.what() + std::string(" query:") + getQuery() + " bindidx:" + std::to_string(index) + " bindct:" + std::to_string(sizeof...(binds)));
+        }
     }
 
     template <typename Value, typename... More>
@@ -108,18 +122,20 @@ void DataSqlite::connect()
 {
     if (sqlite_db) { return; }
 
+    std::vector<std::string> values(++ this->values.begin(), this->values.end());
+
     sqlite_db = std::make_unique<Database>(filename, OPEN_READWRITE | OPEN_CREATE);
 
     if (!sqlite_db->tableExists(table)) {
-        Stmt(*sqlite_db, "CREATE TABLE " + table + " (" + key + " TEXT PRIMARY KEY, " + concat_join(values, " BLOB") + ")").exec();
+        Stmt::make(*sqlite_db, "CREATE TABLE " + table + " (" + key + " TEXT PRIMARY KEY, " + concat_join(values, " BLOB") + ")")->exec();
     }
 
     // TODO: add extra columns to existing tables? could default to null
     //       SQLITE_ENABLE_COLUMN_METADATA might help, haven't reviewed
 
-    add_stmt = std::make_unique<Stmt>(*sqlite_db, "INSERT INTO " + table + " VALUES (?, " + replace_join(values, "?") + ")");
-    get_stmt = std::make_unique<Stmt>(*sqlite_db, "SELECT " + join(values) + " FROM " + table + " WHERE " + key + " == ?");
-    drop_stmt = std::make_unique<Stmt>(*sqlite_db, "DELETE FROM " + table + " WHERE " + key + " == ?");
+    add_stmt = Stmt::make(*sqlite_db, "INSERT INTO " + table + " VALUES (?, " + replace_join(values, "?") + ")");
+    get_stmt = Stmt::make(*sqlite_db, "SELECT " + join(values) + " FROM " + table + " WHERE " + key + " == ?");
+    drop_stmt = Stmt::make(*sqlite_db, "DELETE FROM " + table + " WHERE " + key + " == ?");
     //end_stmt = std::make_unique<Stmt>(*sqlite_db, "");
     //end_stmt->executeStep();
 }
@@ -170,7 +186,7 @@ public:
     template<typename... Binds>
     iterator_impl(bool fill, size_t hash, Database & db, std::string query, Binds... binds)
     : db(db),
-      stmt(Stmt(db, query, binds...)),
+      stmt(Stmt::make(db, query, binds...)),
       hash(hash),
       count(0)
     {
@@ -180,7 +196,7 @@ public:
     }
     iterator_impl(DataSqlite::iterator_impl & other)
     : db(other.db),
-      stmt(Stmt(db, other.stmt.getExpandedSQL())),
+      stmt(Stmt::make(db, other.stmt->getExpandedSQL())),
       hash(other.hash),
       count(other.count)
     { }
@@ -189,7 +205,7 @@ public:
         if (!n) { return; }
         value.clear();
         do {
-            stmt.executeStep();
+            stmt->executeStep();
             count ++;
         } while (-- n);
     }
@@ -201,12 +217,12 @@ public:
         else { return hash == other.hash && count == other.count; }
     }
     bool empty() const {
-        return !stmt.hasRow() || stmt.isDone();
+        return !stmt->hasRow() || stmt->isDone();
     }
     virtual std::string const & deref() override
     {
         if (value.size() == 0) {
-            value = stmt.getColumn(0).getString();
+            value = stmt->getColumn(0).getString();
         }
         return value;
     }
@@ -215,7 +231,7 @@ public:
         return std::unique_ptr<impl>(new iterator_impl(*this));
     }
     Database & db;
-    DataSqlite::Stmt stmt;
+    std::unique_ptr<Stmt> stmt;
     size_t hash;
     size_t count;
     std::string value;
