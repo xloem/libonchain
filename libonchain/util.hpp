@@ -62,6 +62,7 @@ std::string join(Iterable const & iterable, std::string const & joiner = ", ")
 struct byterange : public std::pair<char const *, size_t>
 {
     using std::pair<char const *, size_t>::pair;
+    template <typename Container> byterange(Container const & data) : pair(data.data(), data.size()) { }
     char const * data() { return first; }
     size_t size() { return second; }
 };
