@@ -26,10 +26,13 @@ public:
     std::vector<std::string> const values;
     std::unordered_set<Flag> const flags;
 
+    virtual void connect() = 0;
+    virtual void disconnect() = 0;
+
     // add more features/etc as use is discovered
-    virtual std::string add(std::vector<std::string> const & values);
-    virtual std::vector<std::string> get(std::string const & key);
-    virtual void drop(std::string const & key);
+    virtual std::string add(std::vector<std::string> const & values) = 0;
+    virtual std::vector<std::string> get(std::string const & key) = 0;
+    virtual void drop(std::string const & key) = 0;
 
     virtual virtual_iterator<std::string> begin() = 0;
     virtual virtual_iterator<std::string> end() = 0;
@@ -37,7 +40,7 @@ public:
 
 protected:
     Data(std::string const & technology, std::string const & address, std::string const & key, std::vector<std::string> const & values, std::vector<Flag> const & flags);
-    ~Data();
+    virtual ~Data() = default;
 };
 
 } // namespace libonchain
