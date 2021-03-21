@@ -101,12 +101,19 @@ static Statement bind(Statement statement, size_t index = 0)
 DataSqlite::DataSqlite(std::string const & filename /*= "libonchain"*/, std::string const & table /*= "libonchain"*/, std::string const & key /*= "key"*/, std::vector<std::string> const & values /*= {"value"}*/)
 : Data("sqlite", filename + ":" + table, key, concat({key}, values), {DATA_ARBITRARY_KEY, DATA_FAST}),
   filename(filename),
-  table(table),
-  sqlite_db(std::make_unique<Database>(filename, OPEN_READWRITE | OPEN_CREATE))
+  table(table)
+{ }
+
+void DataSqlite::connect()
 {
+    if (sqlite_db) { return; }
+
+    sqlite_db = std::make_unique<Database>(filename, OPEN_READWRITE | OPEN_CREATE);
+
     if (!sqlite_db->tableExists(table)) {
         Stmt(*sqlite_db, "CREATE TABLE " + table + " (" + key + " TEXT PRIMARY KEY, " + concat_join(values, " BLOB") + ")").exec();
     }
+
     // TODO: add extra columns to existing tables? could default to null
     //       SQLITE_ENABLE_COLUMN_METADATA might help, haven't reviewed
 
@@ -115,6 +122,11 @@ DataSqlite::DataSqlite(std::string const & filename /*= "libonchain"*/, std::str
     drop_stmt = std::make_unique<Stmt>(*sqlite_db, "DELETE FROM " + table + " WHERE " + key + " == ?");
     //end_stmt = std::make_unique<Stmt>(*sqlite_db, "");
     //end_stmt->executeStep();
+}
+
+void DataSqlite::disconnect()
+{
+    sqlite_db.reset();
 }
 
 DataSqlite::~DataSqlite()
@@ -126,12 +138,14 @@ std::string DataSqlite::add(std::vector<std::string> const & values)
     if (values.size() != this->values.size()) {
         throw std::runtime_error("wrong value count");
     }
+    connect();
     add_stmt->exec(map<byterange>(values, [](std::string const & str) { return byterange(str.data(), str.size());}));
     return values[0];
 }
 
 std::vector<std::string> DataSqlite::get(std::string const & key)
 {
+    connect();
     Stmt & stmt = *get_stmt;
     std::unique_lock<std::mutex> lk(stmt.mtx);
 
@@ -147,6 +161,7 @@ std::vector<std::string> DataSqlite::get(std::string const & key)
 
 void DataSqlite::drop(std::string const & key)
 {
+    connect();
     drop_stmt->exec(key);
 }
 
@@ -208,11 +223,13 @@ public:
 
 virtual_iterator<std::string> DataSqlite::begin()
 {
+    connect();
     return new iterator_impl(true, std::hash<DataSqlite*>()(this), *sqlite_db, "SELECT " + key + ", " + join(values) + " FROM " + table);
 }
 
 virtual_iterator<std::string> DataSqlite::end()
 {
+    connect();
     return new iterator_impl(false, std::hash<DataSqlite*>()(this), *sqlite_db, "");
 }
 

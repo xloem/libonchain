@@ -26,6 +26,9 @@ public:
     std::vector<std::string> const values;
     std::unordered_set<Flag> const flags;
 
+    virtual void connect() = 0;
+    virtual void disconnect() = 0;
+
     // add more features/etc as use is discovered
     virtual std::string add(std::vector<std::string> const & values) = 0;
     virtual std::vector<std::string> get(std::string const & key) = 0;

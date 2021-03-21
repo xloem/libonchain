@@ -17,6 +17,9 @@ public:
     DataSqlite(std::string const & filename = "libonchain.sqlite", std::string const & table = "libonchain", std::string const & key = "key", std::vector<std::string> const & values = {"value"});
     ~DataSqlite();
 
+    virtual void connect() override;
+    virtual void disconnect() override;
+
     virtual std::string add(std::vector<std::string> const & values) override;
     virtual std::vector<std::string> get(std::string const & key) override;
     virtual void drop(std::string const & key) override;
