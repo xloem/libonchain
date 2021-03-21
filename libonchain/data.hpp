@@ -34,8 +34,8 @@ public:
     virtual std::vector<std::string> get(std::string const & key) = 0;
     virtual void drop(std::string const & key) = 0;
 
-    virtual virtual_iterator<std::string> begin() = 0;
-    virtual virtual_iterator<std::string> end() = 0;
+    virtual virtual_iterator_const<std::string> begin() = 0;
+    virtual virtual_iterator_const<std::string> end() = 0;
     //virtual virtual_iterator<std::string> get(std::map<std::string> const & values);
 
 protected:

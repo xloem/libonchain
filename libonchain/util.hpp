@@ -62,32 +62,55 @@ std::string join(Iterable const & iterable, std::string const & joiner = ", ")
 struct byterange : public std::pair<char const *, size_t>
 {
     using std::pair<char const *, size_t>::pair;
+    template <typename Container> byterange(Container const & data) : pair(data.data(), data.size()) { }
     char const * data() { return first; }
     size_t size() { return second; }
 };
 
-template <typename value_type>
-class virtual_iterator
+template <typename T>
+class virtual_deleter
+{
+public:
+    ~virtual_deleter() = default;
+    virtual void operator()(T *ptr) {
+        static_assert(sizeof(T) > 0, "can't delete pointer to incomplete type");
+        delete ptr;
+    }
+};
+
+template <typename T>
+class static_deleter : public virtual_deleter<T>
+{
+public:
+    virtual void operator()(T *ptr) override { }
+};
+
+template <typename T>
+using virtual_ptr = std::unique_ptr<T, virtual_deleter<T>>;
+
+template <typename T>
+class virtual_iterator : public std::iterator<std::input_iterator_tag, T, int>
 {
 public:
     struct impl
     {
         virtual void next(int n = 1) = 0;
-        virtual value_type const & deref() = 0;
+        virtual T & deref() = 0;
         virtual bool equal(impl const & other) const = 0;
-        virtual std::unique_ptr<impl> copy() = 0;
+        virtual virtual_ptr<impl> copy() = 0;
         //virtual std::type_info & type() const = 0;
         //virtual ... address() const = 0
         virtual ~impl() = default;
     };
 
-    virtual_iterator(struct impl * _impl) : _impl(_impl) { }
-    virtual_iterator(virtual_iterator<value_type> const & other) : _impl(other->_impl->copy()) { }
-    virtual_iterator(virtual_iterator<value_type> && other) : _impl(std::move(other._impl)) { }
+    virtual_iterator(impl *_impl, virtual_deleter<impl> deleter = {}) : _impl(_impl, deleter) { }
+    virtual_iterator(virtual_ptr<impl> && _impl) : _impl(_impl) { }
+    virtual_iterator(virtual_iterator<T> const & other) : _impl(other._impl->copy()) { }
+    virtual_iterator(virtual_iterator<T> && other) : _impl(std::move(other._impl)) { }
 
-    value_type const & operator*() const
+    T & operator*()
     {
-        return _impl->deref_const();
+        return _impl->deref();
     }
 
     virtual_iterator & operator++()
@@ -107,7 +130,10 @@ public:
     }
 
 private:
-    std::unique_ptr<impl> _impl;
+    virtual_ptr<impl> _impl;
 };
+
+template <typename T>
+using virtual_iterator_const = virtual_iterator<T const>;
 
 } // namespace libonchain

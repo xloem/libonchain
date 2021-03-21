@@ -24,8 +24,8 @@ public:
     virtual std::vector<std::string> get(std::string const & key) override;
     virtual void drop(std::string const & key) override;
 
-    virtual virtual_iterator<std::string> begin() override;
-    virtual virtual_iterator<std::string> end() override;
+    virtual virtual_iterator_const<std::string> begin() override;
+    virtual virtual_iterator_const<std::string> end() override;
 
 protected:
     class Stmt;
