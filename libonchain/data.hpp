@@ -13,9 +13,9 @@ class Data
 {
 public:
     enum Flag {
-        DATA_ARBITRARY_KEY,
-        DATA_FAST,
-        DATA_IMMUTABLE
+        ARBITRARY_KEY,
+        FAST,
+        IMMUTABLE
     };
 
     // please unify similarity with chain.hpp .  maybe even chain would be a subclass of data, uncertain.  it could auto-connect on use if this doesn't connect.

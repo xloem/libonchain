@@ -99,7 +99,7 @@ static Statement bind(Statement statement, size_t index = 0)
 */
 
 DataSqlite::DataSqlite(std::string const & filename /*= "libonchain"*/, std::string const & table /*= "libonchain"*/, std::string const & key /*= "key"*/, std::vector<std::string> const & values /*= {"value"}*/)
-: Data("sqlite", filename + ":" + table, key, concat({key}, values), {DATA_ARBITRARY_KEY, DATA_FAST}),
+: Data("sqlite", filename + ":" + table, key, concat({key}, values), {ARBITRARY_KEY, FAST}),
   filename(filename),
   table(table),
   sqlite_db(std::make_unique<Database>(filename, OPEN_READWRITE | OPEN_CREATE))
