@@ -110,7 +110,7 @@ DataSqlite::DataSqlite(std::string const & filename /*= "libonchain"*/, std::str
     // TODO: add extra columns to existing tables? could default to null
     //       SQLITE_ENABLE_COLUMN_METADATA might help, haven't reviewed
 
-    add_stmt = std::make_unique<Stmt>(*sqlite_db, "INSERT INTO " + table + " VALUES (?, ", replace_join(values, "?"));
+    add_stmt = std::make_unique<Stmt>(*sqlite_db, "INSERT INTO " + table + " VALUES (?, " + replace_join(values, "?") + ")");
     get_stmt = std::make_unique<Stmt>(*sqlite_db, "SELECT " + join(values) + " FROM " + table + " WHERE " + key + " == ?");
     drop_stmt = std::make_unique<Stmt>(*sqlite_db, "DELETE FROM " + table + " WHERE " + key + " == ?");
     //end_stmt = std::make_unique<Stmt>(*sqlite_db, "");
