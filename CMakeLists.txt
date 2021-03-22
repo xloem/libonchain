@@ -44,3 +44,10 @@ target_compile_options(onchain PUBLIC -Wall -pedantic -Werror -Wno-unused-variab
 add_executable(onchain-bin src/tools/onchain.cpp)
 target_link_libraries(onchain-bin onchain)
 set_target_properties(onchain-bin PROPERTIES OUTPUT_NAME onchain)
+
+include(CTest)
+if(BUILD_TESTING)
+    add_executable(test-sqlite test/sqlite.cpp)
+    target_link_libraries(test-sqlite onchain)
+    add_test(NAME sqlite COMMAND test-sqlite)
+endif()
