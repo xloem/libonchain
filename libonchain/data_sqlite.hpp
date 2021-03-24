@@ -1,8 +1,6 @@
 #pragma once
 
 #include <libonchain/data.hpp>
-#include <mutex>
-#include <thread>
 
 namespace SQLite { class Database; }
 
@@ -25,14 +23,13 @@ public:
     virtual void drop(std::string const & key) override;
 
     virtual virtual_iterator_const<std::string> begin() override;
-    virtual virtual_iterator_const<std::string> end() override;
 
 protected:
     class Stmt;
     class iterator_impl;
 
-    std::unique_ptr<SQLite::Database> sqlite_db;
-    std::unique_ptr<Stmt> add_stmt, get_stmt, drop_stmt;//, iter_stmt, end_stmt;
+    SQLite::Database * sqlite_db;
+    Stmt *add_stmt, *get_stmt, *drop_stmt;
 };
 
 }

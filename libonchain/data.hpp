@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+//#include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -34,9 +34,10 @@ public:
     virtual std::vector<std::string> get(std::string const & key) = 0;
     virtual void drop(std::string const & key) = 0;
 
-    virtual virtual_iterator_const<std::string> begin() = 0;
-    virtual virtual_iterator_const<std::string> end() = 0;
-    //virtual virtual_iterator<std::string> get(std::map<std::string> const & values);
+    using iterator = virtual_iterator_const<std::string>;
+    virtual iterator begin() = 0;
+    virtual iterator end() { return {}; };
+    //virtual iterator get(std::map<std::string> const & values);
 
 protected:
     Data(std::string const & technology, std::string const & address, std::string const & key, std::vector<std::string> const & values, std::vector<Flag> const & flags);

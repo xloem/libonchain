@@ -68,60 +68,51 @@ struct byterange : public std::pair<char const *, size_t>
 };
 
 template <typename T>
-class virtual_deleter
-{
-public:
-    ~virtual_deleter() = default;
-    virtual void operator()(T *ptr) {
-        static_assert(sizeof(T) > 0, "can't delete pointer to incomplete type");
-        delete ptr;
-    }
-};
-
-template <typename T>
-class static_deleter : public virtual_deleter<T>
-{
-public:
-    virtual void operator()(T *ptr) override { }
-};
-
-template <typename T>
-using virtual_ptr = std::unique_ptr<T, virtual_deleter<T>>;
-
-template <typename T>
 class virtual_iterator : public std::iterator<std::input_iterator_tag, T, int>
 {
 public:
     struct impl
     {
-        virtual void next(int n = 1) = 0;
+        virtual bool next(int n = 1) = 0;
         virtual T & deref() = 0;
-        virtual bool equal(impl const & other) const = 0;
-        virtual virtual_ptr<impl> copy() = 0;
+        virtual bool equal(impl const & other) const { return false; }
+        virtual impl * new_copy() = 0;
         //virtual std::type_info & type() const = 0;
         //virtual ... address() const = 0
         virtual ~impl() = default;
     };
 
-    virtual_iterator(impl *_impl, virtual_deleter<impl> deleter = {}) : _impl(_impl, deleter) { }
-    virtual_iterator(virtual_ptr<impl> && _impl) : _impl(_impl) { }
-    virtual_iterator(virtual_iterator<T> const & other) : _impl(other._impl->copy()) { }
-    virtual_iterator(virtual_iterator<T> && other) : _impl(std::move(other._impl)) { }
+    virtual_iterator() : ptr(nullptr), own(false) { }
+    virtual_iterator(impl *ptr, bool own) : ptr(ptr), own(own) { }
+    //virtual_iterator(std::unique_ptr<impl> && ptr) : ptr(ptr.release()), own(true) { }
+    virtual_iterator(virtual_iterator<T> const & other) : ptr(other.ptr ? other.ptr->new_copy(): nullptr), own(true) { }
+    virtual_iterator(virtual_iterator<T> && other) : ptr(other.ptr), own(other.own) { other.ptr = nullptr;}
+    ~virtual_iterator() { free(); }
 
     T & operator*()
     {
-        return _impl->deref();
+        return ptr->deref();
     }
 
     virtual_iterator & operator++()
     {
-        _impl->next(1);
+        if (!ptr->next(1)) {
+            if (own) {
+                delete ptr;
+            }
+            ptr = nullptr;
+        }
         return *this;
     }
 
     bool operator==(virtual_iterator const & other) const
     {
-        return _impl->equal(*other._impl);
+        if (ptr == nullptr) {
+            return other.ptr == nullptr;
+        } else if (other.ptr == nullptr) {
+            return false;
+        }
+        return ptr->equal(*other.ptr);
     }
 
     bool operator!=(virtual_iterator const & other) const
@@ -129,8 +120,39 @@ public:
         return !(*this == other);
     }
 
+    virtual_iterator & operator=(virtual_iterator const & other)
+    {
+        free();
+        own = other.own;
+        if (own) {
+            ptr = other.ptr->new_copy();
+        } else {
+            ptr = other.ptr;
+        }
+        return *this;
+    }
+
+    virtual_iterator & operator=(virtual_iterator && other)
+    {
+        free();
+        own = other.own;
+        ptr = other.ptr;
+        other.own = false;
+        other.ptr = nullptr;
+        return *this;
+    }
+
 private:
-    virtual_ptr<impl> _impl;
+    void free()
+    {
+        if (ptr && own) {
+            delete ptr;
+        }
+        ptr = nullptr;
+        own = false;
+    }
+    impl * ptr;
+    bool own;
 };
 
 template <typename T>

@@ -1,6 +1,7 @@
 #include <libonchain/data_sqlite.hpp>
+#include <iostream>
 
-#define assert(...) if (!(__VA_ARGS__)) { throw "Assertion failed: " #__VA_ARGS__; }
+#define assert(...) if (!(__VA_ARGS__)) { std::cerr << "Assertion failed: " #__VA_ARGS__ << std::endl; exit(-1); }
 
 // this could probably be expandable to other data backends too
 // cmake likes it if each test is a different binary
@@ -11,12 +12,14 @@ using namespace libonchain;
 
 int main()
 {
+    try {
     {
         DataSqlite sqlite("test.sqlite");
         assert(sqlite.flags.count(Data::ARBITRARY_KEY));
         assert(sqlite.flags.count(Data::FAST));
         assert(!sqlite.flags.count(Data::IMMUTABLE));
-        for (auto key : sqlite) {
+        for (auto it = sqlite.begin(); it != sqlite.end(); ++ it) {
+            auto & key = *it;
             sqlite.drop(key);
         }
     }
@@ -47,5 +50,9 @@ int main()
             sqlite.get("key-one");
             assert(!"threw error on nonexistent key");
         } catch(...) { }
+    }
+    } catch (std::exception const & e) {
+        std::cerr << e.what() << std::endl;
+        exit(-1);
     }
 }
