@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -34,9 +33,13 @@ public:
     virtual std::vector<std::string> get(std::string const & key) = 0;
     virtual void drop(std::string const & key) = 0;
 
-    virtual virtual_iterator_const<std::string> begin() = 0;
-    virtual virtual_iterator_const<std::string> end() = 0;
-    //virtual virtual_iterator<std::string> get(std::map<std::string> const & values);
+    // thinking it could be good to change to this interface.  begin()/end() could be sugar funcgtions that wrap it.
+    // an iterable class would only need a string and a class reference.
+    virtual std::string next_key(std::string const & last_key, std::string const & ctx = "") { return ""; }
+
+    using iterator = virtual_iterator_const<std::string>;
+    virtual iterator begin() = 0;
+    virtual iterator end() { return {}; };
 
 protected:
     Data(std::string const & technology, std::string const & address, std::string const & key, std::vector<std::string> const & values, std::vector<Flag> const & flags);

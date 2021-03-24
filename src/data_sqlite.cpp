@@ -2,6 +2,7 @@
 
 #include <SQLiteCpp/SQLiteCpp.h>
 
+#include <memory>
 #include <mutex>
 
 using namespace SQLite;
@@ -30,6 +31,7 @@ public:
     template <typename... Binds>
     int bind(Binds ... binds)
     {
+        if (sizeof...(binds) > 0) { reset(); }
         try {
             return _bind(index, binds...);
         } catch (std::exception const & e) {
@@ -38,9 +40,8 @@ public:
     }
 
     template <typename... Binds>
-    int exec_noresults(Binds ... binds)
+    int exec_noresults_needslock(Binds... binds)
     {
-        std::unique_lock<std::mutex> lk(mtx);
         bind(binds...);
         try {
             return Statement::exec();
@@ -50,15 +51,28 @@ public:
     }
 
     template <typename... Binds>
-    int exec_results(Binds ... binds)
+    int exec_noresults_locks(Binds... binds)
     {
         std::unique_lock<std::mutex> lk(mtx);
+        return exec_noresults_needslock(binds...);
+    }
+
+    template <typename... Binds>
+    int exec_results_needslock(Binds ... binds)
+    {
         bind(binds...);
         try {
             return Statement::executeStep();
         } catch (std::exception const & e) {
             throw std::runtime_error(e.what() + std::string(" query:") + getExpandedSQL());
         }
+    }
+
+    template <typename... Binds>
+    int exec_results_locks(Binds ... binds)
+    {
+        std::unique_lock<std::mutex> lk(mtx); // deadlocking here from somewhere
+        return exec_results_needslock(binds...);
     }
 
     /*
@@ -117,36 +131,45 @@ public:
 DataSqlite::DataSqlite(std::string const & filename /*= "libonchain"*/, std::string const & table /*= "libonchain"*/, std::string const & key /*= "key"*/, std::vector<std::string> const & values /*= {"value"}*/)
 : Data("sqlite", filename + ":" + table, key, concat({key}, values), {ARBITRARY_KEY, FAST}),
   filename(filename),
-  table(table)
+  table(table),
+  sqlite_db(nullptr),
+  add_stmt(nullptr),
+  get_stmt(nullptr),
+  drop_stmt(nullptr)
 { }
 
 void DataSqlite::connect()
 {
     if (sqlite_db) { return; }
 
-    std::vector<std::string> values(++ this->values.begin(), this->values.end());
+    std::vector<std::string> nonkey_values(++ this->values.begin(), this->values.end());
 
-    sqlite_db = std::make_unique<Database>(filename, OPEN_READWRITE | OPEN_CREATE);
+    sqlite_db = new Database(filename, OPEN_READWRITE | OPEN_CREATE);
 
     if (!sqlite_db->tableExists(table)) {
-        std::make_unique<Stmt>(*sqlite_db, "CREATE TABLE " + table + " (" + key + " TEXT PRIMARY KEY, " + concat_join(values, " BLOB") + ")")->exec_noresults();
+        Stmt(*sqlite_db, "CREATE TABLE " + table + " (" + key + " TEXT PRIMARY KEY, " + concat_join(nonkey_values, " BLOB") + ")").exec_noresults_needslock();
     }
 
     // TODO: add extra columns to existing tables? could default to null
     //       SQLITE_ENABLE_COLUMN_METADATA might help, haven't reviewed
 
-    add_stmt = std::make_unique<Stmt>(*sqlite_db, "INSERT INTO " + table + " VALUES (?, " + replace_join(values, "?") + ")");
-    get_stmt = std::make_unique<Stmt>(*sqlite_db, "SELECT " + join(values) + " FROM " + table + " WHERE " + key + " == ?");
-    drop_stmt = std::make_unique<Stmt>(*sqlite_db, "DELETE FROM " + table + " WHERE " + key + " == ?");
+    add_stmt = new Stmt(*sqlite_db, "INSERT INTO " + table + " VALUES (" + replace_join(values, "?") + ")");
+    get_stmt = new Stmt(*sqlite_db, "SELECT " + join(nonkey_values) + " FROM " + table + " WHERE " + key + " == ?");
+    drop_stmt = new Stmt(*sqlite_db, "DELETE FROM " + table + " WHERE " + key + " == ?");
 }
 
 void DataSqlite::disconnect()
 {
-    sqlite_db.reset();
+    if (sqlite_db == nullptr) { return; }
+    delete add_stmt; add_stmt = nullptr;
+    delete get_stmt; get_stmt = nullptr;
+    delete drop_stmt; drop_stmt = nullptr;
+    delete sqlite_db; sqlite_db = nullptr;
 }
 
 DataSqlite::~DataSqlite()
 {
+    disconnect();
 }
 
 std::string DataSqlite::add(std::vector<std::string> const & values)
@@ -155,7 +178,7 @@ std::string DataSqlite::add(std::vector<std::string> const & values)
         throw std::runtime_error("wrong value count");
     }
     connect();
-    add_stmt->exec_noresults(values);
+    add_stmt->exec_noresults_locks(values);
     //add_stmt->exec_noresults(map<byterange>(values, [](std::string const & str) { return byterange(str.data(), str.size());}));
     return values[0];
 }
@@ -167,12 +190,12 @@ std::vector<std::string> DataSqlite::get(std::string const & key)
     std::unique_lock<std::mutex> lk(stmt.mtx);
 
     stmt.bind(key);
-    if (!stmt.exec_results()) {
+    if (!stmt.exec_results_needslock()) {
         throw std::runtime_error("not found: " + key);
     }
-    std::vector<std::string> results;
+    std::vector<std::string> results = { key };
     while (results.size() < values.size()) {
-        results.push_back(stmt.getColumn(results.size()).getString());
+        results.push_back(stmt.getColumn(results.size() - 1).getString());
     }
     return results;
 }
@@ -180,7 +203,7 @@ std::vector<std::string> DataSqlite::get(std::string const & key)
 void DataSqlite::drop(std::string const & key)
 {
     connect();
-    drop_stmt->exec_noresults(key);
+    drop_stmt->exec_noresults_locks(key);
 }
 
 class DataSqlite::iterator_impl : public virtual_iterator_const<std::string>::impl {
@@ -192,42 +215,34 @@ public:
       hash(hash),
       count(0)
     {
-        next(1);
+        if (!next(1)) {
+            throw std::runtime_error("no results: " + stmt->getExpandedSQL());
+        }
     }
-    iterator_impl()
-    : db(nullptr),
-      hash(0),
-      count(0)
-    { }
     iterator_impl(DataSqlite::iterator_impl & other)
     : db(other.db),
       stmt(std::make_unique<Stmt>(*db, other.stmt->getExpandedSQL())),
       hash(other.hash),
-      count(other.count)
-    { }
-    virtual void next(int n) override
+      count(0)
     {
-        if (!n) { return; }
+        next(other.count);
+    }
+    virtual bool next(int n) override
+    {
+        if (!n) { return true; }
         value.clear();
         do {
-            if (!stmt->exec_results()) {
-                stmt.reset();
-            }
             count ++;
+            if (!stmt->exec_results_needslock()) {
+                return false;
+            }
         } while (-- n);
+        return true;
     }
     virtual bool equal(impl const & uncast_other) const override
     {
         iterator_impl const & other = dynamic_cast<iterator_impl const &>(uncast_other);
-        if (empty()) { return other.empty(); }
-        else if (other.empty()) { return false; }
-        else { return hash == other.hash && count == other.count; }
-    }
-    bool empty() const {
-        if (!stmt) {
-            return false;
-        }
-        return !stmt->hasRow() || stmt->isDone();
+        return hash == other.hash && count == other.count;
     }
     virtual std::string const & deref() override
     {
@@ -236,27 +251,25 @@ public:
         }
         return value;
     }
-    virtual virtual_ptr<impl> copy() override
+    virtual impl * new_copy() override
     {
-        return virtual_ptr<impl>(new iterator_impl(*this));
+        return new iterator_impl(*this);
     }
     Database * db;
     std::unique_ptr<Stmt> stmt;
     size_t hash;
-    size_t count;
+    ssize_t count;
     std::string value;
 };
 
-virtual_iterator_const<std::string> DataSqlite::begin()
+DataSqlite::iterator DataSqlite::begin()
 {
     connect();
-    return new iterator_impl(std::hash<DataSqlite*>()(this), *sqlite_db, "SELECT " + key + ", " + join(values) + " FROM " + table);
-}
-
-virtual_iterator_const<std::string> DataSqlite::end()
-{
-    static iterator_impl _end;
-    return {&_end, static_deleter<virtual_iterator_const<std::string>::impl>()};
+    try {
+        return {new iterator_impl(std::hash<DataSqlite*>()(this), *sqlite_db, "SELECT " + join(values) + " FROM " + table), true};
+    } catch (std::runtime_error const &) {
+        return end();
+    }
 }
 
 }
