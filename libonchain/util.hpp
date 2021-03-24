@@ -77,14 +77,11 @@ public:
         virtual T & deref() = 0;
         virtual bool equal(impl const & other) const { return false; }
         virtual impl * new_copy() = 0;
-        //virtual std::type_info & type() const = 0;
-        //virtual ... address() const = 0
         virtual ~impl() = default;
     };
 
     virtual_iterator() : ptr(nullptr), own(false) { }
     virtual_iterator(impl *ptr, bool own) : ptr(ptr), own(own) { }
-    //virtual_iterator(std::unique_ptr<impl> && ptr) : ptr(ptr.release()), own(true) { }
     virtual_iterator(virtual_iterator<T> const & other) : ptr(other.ptr ? other.ptr->new_copy(): nullptr), own(true) { }
     virtual_iterator(virtual_iterator<T> && other) : ptr(other.ptr), own(other.own) { other.ptr = nullptr;}
     ~virtual_iterator() { free(); }
