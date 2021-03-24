@@ -31,6 +31,7 @@ public:
     template <typename... Binds>
     int bind(Binds ... binds)
     {
+        if (sizeof...(binds) > 0) { reset(); }
         try {
             return _bind(index, binds...);
         } catch (std::exception const & e) {
@@ -222,18 +223,19 @@ public:
     : db(other.db),
       stmt(std::make_unique<Stmt>(*db, other.stmt->getExpandedSQL())),
       hash(other.hash),
-      count(other.count)
-    { }
+      count(0)
+    {
+        next(other.count);
+    }
     virtual bool next(int n) override
     {
         if (!n) { return true; }
         value.clear();
         do {
+            count ++;
             if (!stmt->exec_results_needslock()) {
-                count = -1;
                 return false;
             }
-            count ++;
         } while (-- n);
         return true;
     }
