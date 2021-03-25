@@ -20,7 +20,7 @@ public:
 
     virtual std::string add(std::vector<std::string> const & values) override;
     virtual std::vector<std::string> get(std::string const & key) override;
-    virtual void drop(std::string const & key) override;
+    void drop(std::string const & key);
 
     virtual virtual_iterator_const<std::string> begin() override;
 
