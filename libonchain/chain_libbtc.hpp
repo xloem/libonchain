@@ -6,6 +6,7 @@
 
 struct btc_chainparams_;
 struct btc_spv_client_;
+struct btc_wallet;
 struct btc_node_;
 struct btc_blockindex;
 struct btc_tx_;
@@ -42,6 +43,7 @@ private:
     typedef unsigned char btc_bool;
 
     std::unique_ptr<btc_spv_client,void(*)(btc_spv_client*)> libbtc_spvclient;
+    std::unique_ptr<btc_wallet,void(*)(btc_wallet*)> libbtc_wallet;
     std::string datadir;
     std::unordered_map<std::string,std::vector<uint8_t>> pending_txs;
 

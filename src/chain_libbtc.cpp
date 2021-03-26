@@ -3,9 +3,12 @@
 #define true true
 #define false false
 #include <btc/chainparams.h>
+#include <btc/ecc.h>
 #include <btc/net.h>
 #include <btc/netspv.h>
+#include <btc/random.h>
 #include <btc/utils.h>
+#include <btc/wallet.h>
 #include <event2/event.h>
 
 #include <iostream> // debugging
@@ -30,8 +33,14 @@ ChainLibbtc::ChainLibbtc(std::string const & technology, btc_chainparams const &
 : Chain(technology, chainparams.chainname, flags),
   libbtc_chainparams(chainparams),
   libbtc_spvclient(nullptr, btc_spv_client_free),
+  libbtc_wallet(nullptr, btc_wallet_free),
   stopping(false)
-{ }
+{
+    static struct ecc {
+    ecc() { btc_ecc_start(); }
+    ~ecc() { btc_ecc_stop(); }
+    } btc_ecc_lifetime;
+}
 
 ChainLibbtc::~ChainLibbtc()
 {
@@ -145,6 +154,30 @@ ChainLibbtc::~ChainLibbtc()
 
 void ChainLibbtc::connect(std::string datadir/* = "."*/, std::vector<std::string> seeds/* = {}*/)
 {
+    if (!libbtc_wallet) {
+        libbtc_wallet.reset(btc_wallet_new(&libbtc_chainparams));
+        std::string walletdb = datadir + "/" + name + ".wallet.db";
+        int error; // libbtc ignores this
+        btc_bool created;
+        if (!btc_wallet_load(libbtc_wallet.get(), walletdb.c_str(), &error, &created)) {
+            throw std::runtime_error("could not load or create wallet database: " + walletdb);
+        }
+        if (created || libbtc_wallet->masterkey == nullptr) {
+            btc_hdnode node;
+            uint8_t seed[32];
+            if (!btc_random_bytes(seed, sizeof(seed), true)) {
+                throw std::runtime_error(walletdb + ": failed to generate random seed for private key");
+            }
+            btc_hdnode_from_seed(seed, sizeof(seed), &node);
+            btc_wallet_set_master_key_copy(libbtc_wallet.get(), &node);
+            if (!btc_wallet_flush(libbtc_wallet.get())) {
+                throw std::runtime_error(walletdb + ": failed to write private key");
+            }
+        }
+        char addrstr[128];
+        btc_hdnode_get_p2pkh_address(libbtc_wallet->masterkey, &libbtc_chainparams, addrstr, sizeof(addrstr));
+        std::cout<< name << " master address: " << addrstr << std::endl;
+    }
     if (!libbtc_spvclient) {
 #if defined(NDEBUG)
         bool debug = false;
@@ -226,6 +259,7 @@ void ChainLibbtc::disconnect()
         runloop.join();
         stopping = false;
     }
+    libbtc_wallet.reset();
     libbtc_spvclient.reset();
 }
 
