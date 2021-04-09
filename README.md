@@ -1,6 +1,6 @@
 # libonchain
 
-This project holds a goal of making a library that reference large data held on blockchains.
+This project holds a goal of making a library that reference large data held permanently on blockchains.
 
 The idea is to separate the blockchains and storage forms into modules that utilise each other.
 
