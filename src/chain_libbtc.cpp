@@ -15,6 +15,40 @@
 
 namespace libonchain {
 
+void send_tx()
+{
+	/*
+	const btc_chainparams *chain;
+	const char *ips;
+	int connected_to_peers = 0;
+	int max_peers_to_connect = maxpeers;
+	int max_peers_to_inv = 2;
+	int inved_to_peers = 0;
+	int getdata_from_peers = 0;
+	int found_on_non_inved_peers = 0;
+	unsigned int timeout;
+	uint64_t start_time;
+	btc_bool debug;
+	uint256 txhash;
+	btc_tx *tx = btc_tx_new();
+	fill tx
+	btc_tx_hash(tx, txhash);
+
+	btc_node_group* group;
+	group->desired_amount_connected_nodes = max_peers_to_connect;
+	group->ctx = this;
+	group->periodic_timer_cb = broadcast_timer_cb;
+	group->postcmd_cb = broadcast_post_cmd;
+	group->handshake_done_cb = broadcast_handshake_done;
+	group->should_connect_to_more_nodes_cb = broadcast_should_connect_more;
+	btc_node_group_add_peers_by_ip_or_seed(group, ips);
+	start_time = time(NULL);
+	btc_node_group_connect_next_nodes(group);
+	btc_node_group_event_loop(group);
+	btc_tx_free(tx)
+	*/
+}
+
 static std::string utils_uint256_to_reversed_hex(uint256 const & bin)
 {
     static char const digits[] = "0123456789abcdef";
@@ -267,7 +301,7 @@ std::string ChainLibbtc::root()
 {
     return utils_uint256_to_reversed_hex(libbtc_chainparams.genesisblockhash);
 }
-
+ 
 std::vector<std::string> ChainLibbtc::tips()
 {
     btc_blockindex *tip = libbtc_spvclient->headers_db->getchaintip(libbtc_spvclient->headers_db_ctx);

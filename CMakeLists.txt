@@ -20,21 +20,11 @@ add_library(libbtc INTERFACE)
     ExternalProject_Get_Property(libbtc_submodule INSTALL_DIR)
     link_directories(libbtc INTERFACE ${INSTALL_DIR}/lib)
     include_directories(libbtc INTERFACE ${INSTALL_DIR}/include)
-    
-    ExternalProject_add(
-        secp256k1_submodule SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/secp256k1
-        PATCH_COMMAND ./autogen.sh CONFIGURE_COMMAND <SOURCE_DIR>/configure --enable-module-recovery --prefix=<INSTALL_DIR>
-        BUILD_COMMAND make INSTALL_COMMAND make install #TEST_COMMAND make check
-    )
-    ExternalProject_Get_Property(secp256k1_submodule INSTALL_DIR)
-    link_directories(libbtc INTERFACE ${INSTALL_DIR}/lib)
-    include_directories(libbtc INTERFACE ${INSTALL_DIR}/include)
 
-    find_library(gmp gmp REQUIRED)
     pkg_check_modules(libevent REQUIRED IMPORTED_TARGET libevent)
     
-    add_dependencies(libbtc secp256k1_submodule libbtc_submodule)
-    target_link_libraries(libbtc INTERFACE btc secp256k1 gmp PkgConfig::libevent)
+    add_dependencies(libbtc libbtc_submodule libbtc_submodule)
+    target_link_libraries(libbtc INTERFACE btc PkgConfig::libevent)
 
 add_library(onchain src/chain.cpp src/chain_libbtc.cpp src/data.cpp src/data_sqlite.cpp)
 target_link_libraries(onchain PRIVATE Threads::Threads libbtc SQLiteCpp)
