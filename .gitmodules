@@ -7,3 +7,6 @@
 [submodule "deps/sqlitecpp"]
 	path = deps/sqlitecpp
 	url = https://github.com/SRombauts/SQLiteCpp.git
+[submodule "deps/bitcoin.git"]
+	path = deps/bitcoin
+	url = https://github.com/bitcoin/bitcoin
