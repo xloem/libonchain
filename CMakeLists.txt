@@ -19,7 +19,7 @@ add_library(libbtc INTERFACE)
         BUILD_COMMAND make INSTALL_COMMAND make install #TEST_COMMAND make check
     )
     ExternalProject_Get_Property(libbtc_submodule INSTALL_DIR)
-    link_directories(libbtc INTERFACE ${INSTALL_DIR}/lib)
+    link_directories(${INSTALL_DIR}/lib)
     target_include_directories(libbtc INTERFACE ${INSTALL_DIR}/include)
 
     pkg_check_modules(libevent REQUIRED IMPORTED_TARGET libevent)
@@ -27,27 +27,27 @@ add_library(libbtc INTERFACE)
     add_dependencies(libbtc libbtc_submodule)
     target_link_libraries(libbtc INTERFACE btc PkgConfig::libevent)
 
-add_library(bitcoin_cli deps/bitcoin/src/bitcoin-cli.cpp)
+add_library(libbitcoin_cli INTERFACE)
     ExternalProject_add(
         bitcoin_submodule SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/bitcoin
         PATCH_COMMAND ./autogen.sh
         CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --without-bdb
-        BUILD_COMMAND "" INSTALL_COMMAND ""
+        BUILD_COMMAND cd src && make libbitcoin_cli.a
+        INSTALL_COMMAND ""
     )
+    ExternalProject_Get_Property(bitcoin_submodule SOURCE_DIR)
     ExternalProject_Get_Property(bitcoin_submodule BINARY_DIR)
-    add_dependencies(bitcoin_cli bitcoin_submodule)
-    target_compile_options(bitcoin_cli PRIVATE -Wno-psabi -DHAVE_CONFIG_H)
-    target_include_directories(bitcoin_cli PRIVATE
-        deps/bitcoin/src
-        ${BINARY_DIR}/src
-        deps/bitcoin/src/univalue/include
-    )
+    link_directories(${BINARY_DIR}/src)
+    target_include_directories(libbitcoin_cli INTERFACE ${SOURCE_DIR}/src ${BINARY_DIR}/src)
+    
+    add_dependencies(libbitcoin_cli bitcoin_submodule)
+    target_link_libraries(libbitcoin_cli INTERFACE bitcoin_cli)
 
 SET(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "Run cpplint.py tool within SQLiteC++")
 add_subdirectory(deps/sqlitecpp)
 
 add_library(onchain src/chain.cpp src/chain_libbtc.cpp src/data.cpp src/data_sqlite.cpp)
-target_link_libraries(onchain PRIVATE Threads::Threads libbtc SQLiteCpp bitcoin_cli)
+target_link_libraries(onchain PRIVATE Threads::Threads libbtc SQLiteCpp libbitcoin_cli)
 target_include_directories(onchain PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_options(onchain PUBLIC -Wall -pedantic -Werror -Wno-unused-variable)
 
