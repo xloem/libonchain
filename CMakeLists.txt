@@ -38,7 +38,11 @@ add_library(libbitcoin_cli INTERFACE)
     ExternalProject_Get_Property(bitcoin_submodule SOURCE_DIR)
     ExternalProject_Get_Property(bitcoin_submodule BINARY_DIR)
     link_directories(${BINARY_DIR}/src)
-    target_include_directories(libbitcoin_cli INTERFACE ${SOURCE_DIR}/src ${BINARY_DIR}/src)
+    target_include_directories(libbitcoin_cli INTERFACE
+        ${SOURCE_DIR}/src
+        ${BINARY_DIR}/src
+        ${SOURCE_DIR}/src/univalue/include
+    )
     
     add_dependencies(libbitcoin_cli bitcoin_submodule)
     target_link_libraries(libbitcoin_cli INTERFACE bitcoin_cli)
@@ -46,7 +50,16 @@ add_library(libbitcoin_cli INTERFACE)
 SET(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "Run cpplint.py tool within SQLiteC++")
 add_subdirectory(deps/sqlitecpp)
 
-add_library(onchain src/chain.cpp src/chain_libbtc.cpp src/data.cpp src/data_sqlite.cpp)
+add_library(onchain
+	src/chain.cpp
+	src/chain_libbtc.cpp
+	src/data.cpp
+	src/data_sqlite.cpp
+
+	src/chain_btcrpc.cpp
+	deps/bitcoin/src/bitcoin-cli.cpp
+)
+set_source_files_properties(deps/bitcoin/src/bitcoin-cli.cpp PROPERTIES COMPILE_FLAGS "-DHAVE_CONFIG_H -Dmain=bitcoin_cli_main -Wno-pedantic -Wno-psabi")
 target_link_libraries(onchain PRIVATE Threads::Threads libbtc SQLiteCpp libbitcoin_cli)
 target_include_directories(onchain PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_options(onchain PUBLIC -Wall -pedantic -Werror -Wno-unused-variable)
