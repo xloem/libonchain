@@ -57,9 +57,8 @@ add_library(onchain
 	src/data_sqlite.cpp
 
 	src/chain_btcrpc.cpp
-	deps/bitcoin/src/bitcoin-cli.cpp
 )
-set_source_files_properties(deps/bitcoin/src/bitcoin-cli.cpp PROPERTIES COMPILE_FLAGS "-DHAVE_CONFIG_H -Dmain=bitcoin_cli_main -Wno-pedantic -Wno-psabi")
+set_source_files_properties(src/chain_btcrpc.cpp PROPERTIES COMPILE_FLAGS "-DHAVE_CONFIG_H -Wno-psabi")
 target_link_libraries(onchain PRIVATE Threads::Threads libbtc SQLiteCpp libbitcoin_cli)
 target_include_directories(onchain PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_options(onchain PUBLIC -Wall -pedantic -Werror -Wno-unused-variable)

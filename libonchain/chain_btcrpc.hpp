@@ -3,7 +3,9 @@
 #include <libonchain/chain.hpp>
 
 // bitcoin
+#ifndef HAVE_CONFIG_H
 #define HAVE_CONFIG_H
+#endif
 #pragma GCC diagnostic ignored "-Wpedantic"
 #include <util/system.h>
 
