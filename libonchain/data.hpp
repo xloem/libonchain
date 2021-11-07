@@ -14,10 +14,10 @@ public:
     enum Flag {
         ARBITRARY_KEY,
         FAST,
-        IMMUTABLE
+        IMMUTABLE // plan: remove this flag.  use the class only for data that is not reasonable to delete.
     };
 
-    // please unify similarity with chain.hpp .  maybe even chain would be a subclass of data, uncertain.  it could auto-connect on use if this doesn't connect.
+    // maybe simplify this, unsure
     std::string const name;
     std::string const technology;
     std::string const address;
